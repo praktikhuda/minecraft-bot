@@ -43,7 +43,7 @@ func init() {
 var (
 	integerOptionMinValue         = 1.0
 	dmPermission                  = false
-	defaultMemberPermisions int64 = discordgo.PermissionManageServer
+	defaultMemberPermisions int64 = discordgo.PermissionAdministrator
 
 	commands = []*discordgo.ApplicationCommand{
 		{
@@ -53,10 +53,12 @@ var (
 		{
 			Name:        "stop",
 			Description: "Stop Minecraft Server",
+			DefaultMemberPermissions: &defaultMemberPermisions,
 		},
 		{
 			Name:        "restart",
 			Description: "Restart Minecraft Server",
+			DefaultMemberPermissions: &defaultMemberPermisions,
 		},
 		{
 			Name:        "status",
@@ -65,6 +67,24 @@ var (
 		{
 			Name:        "info",
 			Description: "Check Server Hardware (CPU/RAM) Status",
+		},
+		{
+			Name:        "tps",
+			Description: "Check Minecraft Server TPS (Lag/Performance)",
+		},
+		{
+			Name:        "ip",
+			Description: "Get Server IP Address and Connection Info",
+		},
+		{
+			Name:        "backup",
+			Description: "Create a ZIP backup of the Minecraft world (Admin Only)",
+			DefaultMemberPermissions: &defaultMemberPermisions,
+		},
+		{
+			Name:        "logs",
+			Description: "Fetch the latest 15 lines of server logs (Admin Only)",
+			DefaultMemberPermissions: &defaultMemberPermisions,
 		},
 		{
 			Name:        "wl",
@@ -93,6 +113,7 @@ var (
 		{
 			Name:        "kick",
 			Description: "Kick a player from the Minecraft server",
+			DefaultMemberPermissions: &defaultMemberPermisions,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
@@ -111,11 +132,38 @@ var (
 		{
 			Name:        "ban",
 			Description: "Ban a player from the Minecraft server",
+			DefaultMemberPermissions: &defaultMemberPermisions,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
 					Name:        "username",
 					Description: "The Minecraft username to ban",
+					Required:    true,
+				},
+			},
+		},
+		{
+			Name:        "op",
+			Description: "Give a player Operator privileges (Admin Only)",
+			DefaultMemberPermissions: &defaultMemberPermisions,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "username",
+					Description: "The Minecraft username to OP",
+					Required:    true,
+				},
+			},
+		},
+		{
+			Name:        "deop",
+			Description: "Remove Operator privileges from a player (Admin Only)",
+			DefaultMemberPermissions: &defaultMemberPermisions,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "username",
+					Description: "The Minecraft username to De-OP",
 					Required:    true,
 				},
 			},
@@ -167,6 +215,42 @@ var (
 				},
 			})
 			utils.MessageHandler("info", s, i, "")
+		},
+		"tps": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "**Checking server TPS...**",
+				},
+			})
+			utils.MessageHandler("tps", s, i, "")
+		},
+		"ip": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "**Fetching Server IP...**",
+				},
+			})
+			utils.MessageHandler("ip", s, i, "")
+		},
+		"backup": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "**Starting World Backup... Please wait.**",
+				},
+			})
+			utils.MessageHandler("backup", s, i, "")
+		},
+		"logs": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "**Fetching the latest server logs...**",
+				},
+			})
+			utils.MessageHandler("logs", s, i, "")
 		},
 		"say": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			options := i.ApplicationCommandData().Options
@@ -223,6 +307,38 @@ var (
 			})
 			utils.MessageHandler("ban", s, i, username)
 		},
+		"op": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			options := i.ApplicationCommandData().Options
+			username := ""
+			for _, opt := range options {
+				if opt.Name == "username" {
+					username = opt.StringValue()
+				}
+			}
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: fmt.Sprintf("**Opping `%s`...**", username),
+				},
+			})
+			utils.MessageHandler("op", s, i, username)
+		},
+		"deop": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			options := i.ApplicationCommandData().Options
+			username := ""
+			for _, opt := range options {
+				if opt.Name == "username" {
+					username = opt.StringValue()
+				}
+			}
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: fmt.Sprintf("**De-opping `%s`...**", username),
+				},
+			})
+			utils.MessageHandler("deop", s, i, username)
+		},
 		"wl": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			options := i.ApplicationCommandData().Options
 			optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
@@ -258,6 +374,11 @@ func main() {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
 	})
+	
+	s.AddHandler(utils.CrossChatHandler)
+	
+	s.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentsGuilds | discordgo.IntentMessageContent
+
 	err := s.Open()
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
