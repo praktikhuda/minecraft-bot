@@ -1,0 +1,16 @@
+[Unit]
+Description=Minecraft Server [Our World]
+After=network.target
+PartOf=minecraft.target
+
+[Service]
+ExecStart=/usr/bin/java -Xms2G -Xmx7G -jar server.jar nogui
+WorkingDirectory=/root/
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=300
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+
