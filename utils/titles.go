@@ -32,7 +32,7 @@ func SyncTitles() (string, error) {
 		return "", fmt.Errorf("Failed to read usercache.json: %v", err)
 	}
 
-	statsDir := filepath.Join(mcPath, "world", "stats")
+	statsDir := filepath.Join(mcPath, "world", "players", "stats")
 	files, err := ioutil.ReadDir(statsDir)
 	if err != nil {
 		return "", fmt.Errorf("Failed to read stats directory: %v", err)
