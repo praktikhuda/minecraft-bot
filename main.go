@@ -1,9 +1,9 @@
-﻿package main
+package main
 
 import (
 	"flag"
-	"log"
 	"fmt"
+	"log"
 	"minedc/utils"
 	"os"
 	"os/signal"
@@ -47,17 +47,35 @@ var (
 
 	commands = []*discordgo.ApplicationCommand{
 		{
+			Name:        "leaderboard",
+			Description: "View player statistics leaderboard",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "category",
+					Description: "Select leaderboard category",
+					Required:    true,
+					Choices: []*discordgo.ApplicationCommandOptionChoice{
+						{Name: "Paling Sering Mati (Deaths)", Value: "deaths"},
+						{Name: "Raja PVP (Kills)", Value: "player_kills"},
+						{Name: "Paling Lama Bermain", Value: "play_time"},
+						{Name: "Penambang Diamond", Value: "diamonds"},
+					},
+				},
+			},
+		},
+		{
 			Name:        "start",
 			Description: "Start Minecraft Server",
 		},
 		{
-			Name:        "stop",
-			Description: "Stop Minecraft Server",
+			Name:                     "stop",
+			Description:              "Stop Minecraft Server",
 			DefaultMemberPermissions: &defaultMemberPermisions,
 		},
 		{
-			Name:        "restart",
-			Description: "Restart Minecraft Server",
+			Name:                     "restart",
+			Description:              "Restart Minecraft Server",
 			DefaultMemberPermissions: &defaultMemberPermisions,
 		},
 		{
@@ -77,13 +95,13 @@ var (
 			Description: "Get Server IP Address and Connection Info",
 		},
 		{
-			Name:        "backup",
-			Description: "Create a ZIP backup of the Minecraft world (Admin Only)",
+			Name:                     "backup",
+			Description:              "Create a ZIP backup of the Minecraft world (Admin Only)",
 			DefaultMemberPermissions: &defaultMemberPermisions,
 		},
 		{
-			Name:        "logs",
-			Description: "Fetch the latest 15 lines of server logs (Admin Only)",
+			Name:                     "logs",
+			Description:              "Fetch the latest 15 lines of server logs (Admin Only)",
 			DefaultMemberPermissions: &defaultMemberPermisions,
 		},
 		{
@@ -111,8 +129,8 @@ var (
 			},
 		},
 		{
-			Name:        "kick",
-			Description: "Kick a player from the Minecraft server",
+			Name:                     "kick",
+			Description:              "Kick a player from the Minecraft server",
 			DefaultMemberPermissions: &defaultMemberPermisions,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
@@ -130,8 +148,8 @@ var (
 			},
 		},
 		{
-			Name:        "ban",
-			Description: "Ban a player from the Minecraft server",
+			Name:                     "ban",
+			Description:              "Ban a player from the Minecraft server",
 			DefaultMemberPermissions: &defaultMemberPermisions,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
@@ -143,8 +161,8 @@ var (
 			},
 		},
 		{
-			Name:        "op",
-			Description: "Give a player Operator privileges (Admin Only)",
+			Name:                     "op",
+			Description:              "Give a player Operator privileges (Admin Only)",
 			DefaultMemberPermissions: &defaultMemberPermisions,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
@@ -156,8 +174,8 @@ var (
 			},
 		},
 		{
-			Name:        "deop",
-			Description: "Remove Operator privileges from a player (Admin Only)",
+			Name:                     "deop",
+			Description:              "Remove Operator privileges from a player (Admin Only)",
 			DefaultMemberPermissions: &defaultMemberPermisions,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
@@ -171,6 +189,24 @@ var (
 	}
 
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+		"leaderboard": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			category := ""
+			for _, opt := range i.ApplicationCommandData().Options {
+				if opt.Name == "category" {
+					category = opt.StringValue()
+				}
+			}
+			msg, err := utils.GenerateLeaderboard(category)
+			if err != nil {
+				msg = "Error: " + err.Error()
+			}
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: msg,
+				},
+			})
+		},
 		"start": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -374,9 +410,9 @@ func main() {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
 	})
-	
+
 	s.AddHandler(utils.CrossChatHandler)
-	
+
 	s.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentsGuilds | discordgo.IntentMessageContent
 
 	err := s.Open()
