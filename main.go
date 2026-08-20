@@ -47,6 +47,11 @@ var (
 
 	commands = []*discordgo.ApplicationCommand{
 		{
+			Name:                     "sync_titles",
+			Description:              "Update ingame titles for top players automatically",
+			DefaultMemberPermissions: &defaultMemberPermisions,
+		},
+		{
 			Name:        "leaderboard",
 			Description: "View player statistics leaderboard",
 			Options: []*discordgo.ApplicationCommandOption{
@@ -60,6 +65,7 @@ var (
 						{Name: "Raja PVP (Kills)", Value: "player_kills"},
 						{Name: "Paling Lama Bermain", Value: "play_time"},
 						{Name: "Penambang Diamond", Value: "diamonds"},
+						{Name: "Sembilan Nyawa (Totem)", Value: "totems"},
 					},
 				},
 			},
@@ -189,6 +195,24 @@ var (
 	}
 
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+		"sync_titles": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "⏳ Sedang menyinkronkan gelar pemain...",
+				},
+			})
+			msg, err := utils.SyncTitles()
+			if err != nil {
+				msg = "Error: " + err.Error()
+			}
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: msg,
+				},
+			})
+		},
 		"leaderboard": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			category := ""
 			for _, opt := range i.ApplicationCommandData().Options {

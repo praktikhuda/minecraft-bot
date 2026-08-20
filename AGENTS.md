@@ -66,8 +66,11 @@ This project is a Discord Bot written in Go, specifically designed to control, m
 
 - [x] Added /leaderboard command to display top player stats
 
+- [x] Added /sync_titles command and automated LuckPerms title assignment for top players.
+
 ### Recent Changes / Changelog
 - **2026-08-20**: `AGENTS.md` - Created comprehensive agent rule file based on project analysis to standardize AI interactions.
 - **2026-08-20**: main.go, utils/discord.go - Added /status, /restart, /say, /kick, /ban commands via mcrcon and systemctl.
 - **2026-08-20**: main.go, utils/discord.go - Added /info command for hardware monitoring.
 - **2026-08-20**: Added advanced commands (/backup, /tps, /logs, /ip, /op, /deop) and Cross-Chat listener. Created DISCORD_GUIDE.md.- **2026-08-20**: main.go, utils/leaderboard.go - Added /leaderboard command to parse world/stats/ and display top player stats like deaths, kills, playtime, and diamonds mined.
+- **2026-08-20**: main.go, utils/titles.go - Added auto-title assignment logic via RCON, connecting stats to LuckPerms.

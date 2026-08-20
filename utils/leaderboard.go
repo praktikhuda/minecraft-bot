@@ -60,6 +60,9 @@ func getStatValue(statData map[string]interface{}, category string) int {
 	case "diamonds":
 		statGroup = "minecraft:mined"
 		statName = "minecraft:diamond_ore"
+	case "totems":
+		statGroup = "minecraft:used"
+		statName = "minecraft:totem_of_undying"
 	}
 
 	if group, exists := stats[statGroup].(map[string]interface{}); exists {
@@ -138,6 +141,8 @@ func GenerateLeaderboard(category string) (string, error) {
 		title = "⏱️ Paling Lama Bermain (Ticks)"
 	case "diamonds":
 		title = "💎 Penambang Diamond Terbanyak"
+	case "totems":
+		title = "👼 Sembilan Nyawa (Pemakai Totem)"
 	}
 
 	var sb strings.Builder

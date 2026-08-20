@@ -1,4 +1,4 @@
-﻿package utils
+package utils
 
 import (
 	"context"
@@ -126,7 +126,7 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 		uptime := strings.TrimSpace(string(uptimeOut))
 
 		response := fmt.Sprintf("**Server Hardware Info:**\n💻 **CPU Usage:** `%s%%`\n🧠 **RAM Usage:** `%s`\n⏱ **Uptime:** `%s`", cpuUsage, ramUsage, uptime)
-		
+
 		s.ChannelMessageSend(m.ChannelID, response)
 	case "tps":
 		if !IsServiceRunning(servName) {
@@ -149,7 +149,7 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 		if publicIP == "" {
 			publicIP = "Unknown IP"
 		}
-		
+
 		embed := &discordgo.MessageEmbed{
 			Title:       "🌐 Server Connection Info",
 			Description: fmt.Sprintf("You can join the server using the IP below:\n\n**IP Address:** `%s`\n**Version:** (Cek ke Admin)\n\n*Have fun playing!*", publicIP),
@@ -258,7 +258,7 @@ func startServer() {
 
 func CrossChatHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	syncChannel := os.Getenv("SYNC_CHANNEL_ID")
-	
+
 	// Ignore if no sync channel is set
 	if syncChannel == "" {
 		return
@@ -280,7 +280,7 @@ func CrossChatHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Clean up message
 	content := strings.ReplaceAll(m.Content, "`", "'")
 	content = strings.ReplaceAll(content, "\n", " ")
-	
+
 	// Send to Minecraft via RCON say
 	sendRconCommand(fmt.Sprintf("say [DC - %s]: %s", m.Author.Username, content))
 }
