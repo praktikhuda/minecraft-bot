@@ -206,11 +206,8 @@ var (
 			if err != nil {
 				msg = "Error: " + err.Error()
 			}
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: msg,
-				},
+			_, _ = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+				Content: &msg,
 			})
 		},
 		"leaderboard": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
