@@ -60,7 +60,7 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 				var res string
 				log.Printf("message is: %v", line)
 				if strings.Contains(line, "joined the game") {
-					name := strings.TrimSuffix(tmp, " joined the game")
+					name := strings.TrimSpace(strings.TrimSuffix(tmp, " joined the game"))
 					res = fmt.Sprintf("%s: **joined the game**", name)
 				} else if strings.Contains(line, "For help, type") {
 					res = "**Minecraft Server is Running!**"
@@ -68,7 +68,7 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 						Name: "minecraft-on",
 					})
 				} else if strings.Contains(line, "left the game") {
-					name := strings.TrimSuffix(tmp, " left the game")
+					name := strings.TrimSpace(strings.TrimSuffix(tmp, " left the game"))
 					res = fmt.Sprintf("%s: **left the game**", name)
 				} else if strings.Contains(line, "#msg") {
 					start := strings.Index(tmp, "<") + 1

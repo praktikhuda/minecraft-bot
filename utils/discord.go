@@ -42,6 +42,11 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 			msg := "Minecraft Server is already Running!"
 			s.ChannelMessageSend(m.ChannelID, msg)
 			log.Println(msg)
+			if cancelFunc == nil {
+				ctx, cancel := context.WithCancel(context.Background())
+				cancelFunc = cancel
+				go LogListen(ctx, s, m.ChannelID)
+			}
 		} else {
 			startServer()
 			if cancelFunc != nil {
