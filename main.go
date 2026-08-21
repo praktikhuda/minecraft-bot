@@ -115,14 +115,7 @@ var (
 			Name:        "info",
 			Description: "Check Server Hardware (CPU/RAM) Status",
 		},
-		{
-			Name:        "tps",
-			Description: "Check Minecraft Server TPS (Lag/Performance)",
-		},
-		{
-			Name:        "ip",
-			Description: "Get Server IP Address and Connection Info",
-		},
+
 		{
 			Name:                     "backup",
 			Description:              "Create a ZIP backup of the Minecraft world (Admin Only)",
@@ -219,6 +212,16 @@ var (
 
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"unban": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
+					},
+				})
+				return
+			}
+
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -229,6 +232,16 @@ var (
 			utils.MessageHandler("unban", s, i, p)
 		},
 		"rmblackmarket": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
+					},
+				})
+				return
+			}
+
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -241,6 +254,16 @@ var (
 			})
 		},
 		"blackmarket": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
+					},
+				})
+				return
+			}
+
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -256,6 +279,16 @@ var (
 			})
 		},
 		"sync_titles": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
+					},
+				})
+				return
+			}
+
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -307,6 +340,16 @@ var (
 			utils.MessageHandler("stop", s, i, "")
 		},
 		"restart": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
+					},
+				})
+				return
+			}
+
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -352,6 +395,16 @@ var (
 			utils.MessageHandler("ip", s, i, "")
 		},
 		"backup": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
+					},
+				})
+				return
+			}
+
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -361,6 +414,16 @@ var (
 			utils.MessageHandler("backup", s, i, "")
 		},
 		"logs": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
+					},
+				})
+				return
+			}
+
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -386,6 +449,16 @@ var (
 			utils.MessageHandler("say", s, i, message)
 		},
 		"kick": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
+					},
+				})
+				return
+			}
+
 			options := i.ApplicationCommandData().Options
 			username := ""
 			reason := ""
@@ -409,6 +482,16 @@ var (
 			utils.MessageHandler("kick", s, i, arg)
 		},
 		"ban": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
+					},
+				})
+				return
+			}
+
 			options := i.ApplicationCommandData().Options
 			username := ""
 			for _, opt := range options {
@@ -425,22 +508,46 @@ var (
 			utils.MessageHandler("ban", s, i, username)
 		},
 		"op": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
+					},
+				})
+				return
+			}
+
 			options := i.ApplicationCommandData().Options
 			username := ""
+			role := ""
 			for _, opt := range options {
 				if opt.Name == "username" {
 					username = opt.StringValue()
+				} else if opt.Name == "role" {
+					role = opt.StringValue()
 				}
 			}
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: fmt.Sprintf("**Opping `%s`...**", username),
+					Content: fmt.Sprintf("**Memproses jabatan `%s`...**", username),
 				},
 			})
-			utils.MessageHandler("op", s, i, username)
+			payload := username + ":" + role
+			utils.MessageHandler("op", s, i, payload)
 		},
 		"deop": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
+					},
+				})
+				return
+			}
+
 			options := i.ApplicationCommandData().Options
 			username := ""
 			for _, opt := range options {
@@ -485,6 +592,18 @@ func init() {
 			h(s, i)
 		}
 	})
+}
+
+
+func isOwner(i *discordgo.InteractionCreate) bool {
+	var userID string
+	if i.Member != nil {
+		userID = i.Member.User.ID
+	} else if i.User != nil {
+		userID = i.User.ID
+	}
+	ownerID := os.Getenv("OWNER_ID")
+	return userID == ownerID
 }
 
 func main() {
