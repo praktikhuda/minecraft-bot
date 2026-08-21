@@ -1,0 +1,46 @@
+package utils
+
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
+
+// SpawnBlackMarket generates random coordinates and spawns a custom wandering trader.
+func SpawnBlackMarket() (string, error) {
+	// Initialize random seed
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	// Random coordinates between -1000 and 1000
+	x := r.Intn(2001) - 1000
+	z := r.Intn(2001) - 1000
+
+	// RCON command to spawn the wandering trader
+	summonCmd := fmt.Sprintf(
+		`execute in minecraft:overworld positioned %d 319 %d run summon wandering_trader ~ ~ ~ {CustomName:'{"text":"Pedagang Gelap","color":"dark_red","bold":true}',Invulnerable:1b,DespawnDelay:36000,Offers:{Recipes:[{buy:{id:"minecraft:wither_skeleton_skull",count:1},buyB:{id:"minecraft:diamond",count:64},sell:{id:"minecraft:elytra",count:1},maxUses:1,rewardExp:0b}]}}`,
+		x, z,
+	)
+
+	// Broadcast to the server
+	broadcastCmd := fmt.Sprintf(
+		`tellraw @a {"text":"\n[🚨 EVENT BLACK MARKET 🚨]\nPedagang Gelap telah muncul di koordinat X: %d, Z: %d!\nDia menjual Elytra seharga 1 Wither Skeleton Skull dan 64 Diamond. Stok hanya 1! Siapa cepat dia dapat!\n","color":"yellow","bold":true}`,
+		x, z,
+	)
+
+	// Execute RCON
+	err := runRcon(summonCmd)
+	if err != nil {
+		return "", fmt.Errorf("gagal memanggil pedagang: %w", err)
+	}
+
+	err = runRcon(broadcastCmd)
+	if err != nil {
+		// Log the error but don't fail the command if broadcasting fails
+		fmt.Printf("Gagal broadcast blackmarket: %v\n", err)
+	}
+
+	// Message to return to Discord
+	discordMsg := fmt.Sprintf("**🚨 EVENT BLACK MARKET DIMULAI 🚨**\n\nPedagang Gelap telah dipanggil di koordinat **X: %d, Z: %d**!\n\nBarang yang dijual:\n- 🪽 **1x Elytra**\nHarga:\n- 💀 **1x Wither Skeleton Skull**\n- 💎 **64x Diamond**\n\nStok hanya **1**. Waktu memburu: **30 Menit**!", x, z)
+	
+	return discordMsg, nil
+}

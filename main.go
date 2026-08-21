@@ -47,6 +47,11 @@ var (
 
 	commands = []*discordgo.ApplicationCommand{
 		{
+			Name:                     "blackmarket",
+			Description:              "Panggil pedagang gelap ke koordinat acak",
+			DefaultMemberPermissions: &defaultMemberPermisions,
+		},
+		{
 			Name:                     "sync_titles",
 			Description:              "Update ingame titles for top players automatically",
 			DefaultMemberPermissions: &defaultMemberPermisions,
@@ -195,6 +200,21 @@ var (
 	}
 
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+		"blackmarket": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "⏳ Memanggil pedagang gelap dari langit...",
+				},
+			})
+			msg, err := utils.SpawnBlackMarket()
+			if err != nil {
+				msg = "Error: " + err.Error()
+			}
+			_, _ = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+				Content: &msg,
+			})
+		},
 		"sync_titles": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
