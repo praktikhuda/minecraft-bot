@@ -21,7 +21,7 @@ func SpawnBlackMarket() (string, error) {
 
 	// RCON command to spawn the wandering trader
 	summonCmd := fmt.Sprintf(
-		`execute in minecraft:overworld positioned %d 319 %d run summon wandering_trader ~ ~ ~ {CustomName:'"Pedagang Gelap"',NoAI:1b,Invulnerable:1b,DespawnDelay:36000,Offers:{Recipes:[{buy:{id:"minecraft:wither_skeleton_skull",count:1},buyB:{id:"minecraft:diamond",count:64},sell:{id:"minecraft:elytra",count:1},maxUses:1,rewardExp:0b}]}}`,
+		`execute in minecraft:overworld positioned %d 319 %d run summon wandering_trader ~ ~ ~ {CustomName:'"Pedagang Gelap"',Invulnerable:1b,DespawnDelay:36000,ActiveEffects:[{id:"minecraft:slowness",amplifier:255b,duration:999999,show_particles:0b}],Offers:{Recipes:[{buy:{id:"minecraft:wither_skeleton_skull",count:1},buyB:{id:"minecraft:diamond",count:64},sell:{id:"minecraft:elytra",count:1},maxUses:1,rewardExp:0b}]}}`,
 		x, z,
 	)
 
