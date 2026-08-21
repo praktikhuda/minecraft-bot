@@ -74,3 +74,10 @@ This project is a Discord Bot written in Go, specifically designed to control, m
 - **2026-08-20**: main.go, utils/discord.go - Added /info command for hardware monitoring.
 - **2026-08-20**: Added advanced commands (/backup, /tps, /logs, /ip, /op, /deop) and Cross-Chat listener. Created DISCORD_GUIDE.md.- **2026-08-20**: main.go, utils/leaderboard.go - Added /leaderboard command to parse world/stats/ and display top player stats like deaths, kills, playtime, and diamonds mined.
 - **2026-08-20**: main.go, utils/titles.go - Added auto-title assignment logic via RCON, connecting stats to LuckPerms.
+
+## 8. Development & Debugging Access (VPS)
+If direct server debugging is required, you can SSH into the production server using the following credentials:
+- **IP Address:** 147.93.159.183
+- **User:** minecraft
+- **Password:** minecraft12345
+- **System Architecture:** systemd (`mcbot` service for golang bot, `minecraft-server` service for the Minecraft server)
