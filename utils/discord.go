@@ -259,12 +259,47 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 			s.ChannelMessageSend(m.ChannelID, "Server is offline.")
 			return
 		}
-		output, err := sendRconCommand(fmt.Sprintf("op %s", p))
-		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, "Failed to OP player.")
-		} else {
+
+		parts := strings.Split(p, ":")
+		if len(parts) != 2 {
+			// Jika format payload lama atau salah
+			output, _ := sendRconCommand(fmt.Sprintf("op %s", p))
 			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Result: %s", output))
+			return
 		}
+		username := parts[0]
+		role := parts[1]
+
+		var cmds []string
+		var actionName string
+		if role == "admin" {
+			cmds = append(cmds, fmt.Sprintf("op %s", username))
+			cmds = append(cmds, fmt.Sprintf("gamemode creative %s", username))
+			actionName = "dijadikan ADMIN (OP & Creative)"
+		} else if role == "spectator" {
+			cmds = append(cmds, fmt.Sprintf("deop %s", username))
+			cmds = append(cmds, fmt.Sprintf("gamemode spectator %s", username))
+			actionName = "dijadikan SPECTATOR (Mata-mata)"
+		} else if role == "player" {
+			cmds = append(cmds, fmt.Sprintf("deop %s", username))
+			cmds = append(cmds, fmt.Sprintf("gamemode survival %s", username))
+			actionName = "dikembalikan menjadi PLAYER (Survival & Deop)"
+		}
+
+		var finalMsg string
+		for _, cmd := range cmds {
+			_, err := sendRconCommand(cmd)
+			if err != nil {
+				finalMsg = "❌ Error mengeksekusi RCON: " + err.Error()
+				break
+			}
+		}
+
+		if finalMsg == "" {
+			finalMsg = fmt.Sprintf("✅ **Berhasil:** `%s` telah %s!", username, actionName)
+		}
+
+		s.ChannelMessageSend(m.ChannelID, finalMsg)
 	case "deop":
 		ownerID := os.Getenv("OWNER_ID")
 		userID := ""
