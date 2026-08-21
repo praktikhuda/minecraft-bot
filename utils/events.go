@@ -48,3 +48,14 @@ func SpawnBlackMarket() (string, error) {
 	
 	return discordMsg, nil
 }
+
+// RemoveBlackMarket kills all wandering traders in the world.
+func RemoveBlackMarket() (string, error) {
+	// Execute kill command for all wandering traders to clean up the bugged ones
+	killCmd := `execute in minecraft:overworld run kill @e[type=wandering_trader]`
+	err := runRcon(killCmd)
+	if err != nil {
+		return "❌ Gagal mengusir pedagang: " + err.Error(), err
+	}
+	return "🧹 **PEMBERSIHAN BERHASIL!**\nSeluruh Pedagang Gelap (termasuk yang bug) telah diusir paksa dari dunia!", nil
+}

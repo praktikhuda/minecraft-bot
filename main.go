@@ -60,6 +60,11 @@ var (
 			},
 		},
 		{
+			Name:                     "rmblackmarket",
+			Description:              "Hapus semua pedagang gelap dari dunia",
+			DefaultMemberPermissions: &defaultMemberPermisions,
+		},
+		{
 			Name:                     "blackmarket",
 			Description:              "Panggil pedagang gelap ke koordinat acak",
 			DefaultMemberPermissions: &defaultMemberPermisions,
@@ -222,6 +227,18 @@ var (
 			})
 			p := i.ApplicationCommandData().Options[0].StringValue()
 			utils.MessageHandler("unban", s, i, p)
+		},
+		"rmblackmarket": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "⏳ Sedang mengusir Pedagang Gelap...",
+				},
+			})
+			msg, _ := utils.RemoveBlackMarket()
+			s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+				Content: &msg,
+			})
 		},
 		"blackmarket": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
