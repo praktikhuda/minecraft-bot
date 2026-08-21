@@ -214,6 +214,12 @@ var (
 
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"unban": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "⏳ Membuka blokir pemain...",
+				},
+			})
 			p := i.ApplicationCommandData().Options[0].StringValue()
 			utils.MessageHandler("unban", s, i, p)
 		},
