@@ -184,14 +184,34 @@ var (
 		},
 		{
 			Name:                     "op",
-			Description:              "Give a player Operator privileges (Admin Only)",
+			Description:              "Berikan jabatan khusus ke pemain Minecraft",
 			DefaultMemberPermissions: &defaultMemberPermisions,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
 					Name:        "username",
-					Description: "The Minecraft username to OP",
+					Description: "Username Minecraft",
 					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "role",
+					Description: "Pilih jabatan",
+					Required:    true,
+					Choices: []*discordgo.ApplicationCommandOptionChoice{
+						{
+							Name:  "Admin (Creative + OP)",
+							Value: "admin",
+						},
+						{
+							Name:  "Spectator (Spectator + Deop)",
+							Value: "spectator",
+						},
+						{
+							Name:  "Player (Survival + Deop)",
+							Value: "player",
+						},
+					},
 				},
 			},
 		},
