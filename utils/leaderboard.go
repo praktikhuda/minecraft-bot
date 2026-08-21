@@ -46,6 +46,19 @@ func getStatValue(statData map[string]interface{}, category string) int {
 		return 0
 	}
 
+	if category == "diamonds" {
+		total := 0
+		if group, exists := stats["minecraft:mined"].(map[string]interface{}); exists {
+			if val, exists := group["minecraft:diamond_ore"].(float64); exists {
+				total += int(val)
+			}
+			if val, exists := group["minecraft:deepslate_diamond_ore"].(float64); exists {
+				total += int(val)
+			}
+		}
+		return total
+	}
+
 	var statGroup, statName string
 	switch category {
 	case "deaths":
@@ -57,9 +70,6 @@ func getStatValue(statData map[string]interface{}, category string) int {
 	case "play_time":
 		statGroup = "minecraft:custom"
 		statName = "minecraft:play_time"
-	case "diamonds":
-		statGroup = "minecraft:mined"
-		statName = "minecraft:diamond_ore"
 	case "totems":
 		statGroup = "minecraft:used"
 		statName = "minecraft:totem_of_undying"
