@@ -640,6 +640,8 @@ func main() {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
 
+	utils.AutoStartLog(s)
+
 	log.Println("Adding commands...")
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
 	for i, v := range commands {

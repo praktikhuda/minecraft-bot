@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 
@@ -14,6 +15,10 @@ import (
 )
 
 var cancelFunc context.CancelFunc
+
+// Helper function to send RCON commands
+// Regex to match ANSI escape codes
+var ansiRegex = regexp.MustCompile("\x1b\\[[0-9;]*[a-zA-Z]")
 
 // Helper function to send RCON commands
 func sendRconCommand(command string) (string, error) {
@@ -29,7 +34,20 @@ func sendRconCommand(command string) (string, error) {
 	)
 
 	output, err := cmd.CombinedOutput()
-	return strings.TrimSpace(string(output)), err
+	cleanOutput := ansiRegex.ReplaceAllString(string(output), "")
+	return strings.TrimSpace(cleanOutput), err
+}
+
+
+func AutoStartLog(s *discordgo.Session) {
+	servName := os.Getenv("SERVICE_NAME")
+	syncChannel := os.Getenv("SYNC_CHANNEL_ID")
+	if syncChannel != "" && IsServiceRunning(servName) && cancelFunc == nil {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancelFunc = cancel
+		go LogListen(ctx, s, syncChannel)
+		log.Println("Auto-started LogListen on boot.")
+	}
 }
 
 func MessageHandler(command string, s *discordgo.Session, m *discordgo.InteractionCreate, p string) {
