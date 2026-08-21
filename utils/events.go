@@ -2,18 +2,22 @@ package utils
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
+		"strings"
 )
 
 // SpawnBlackMarket generates random coordinates and spawns a custom wandering trader.
 func SpawnBlackMarket() (string, error) {
-	// Initialize random seed
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	// Cek apakah pedagang gelap sudah ada di dunia
+	output, err := sendRconCommand("execute if entity @e[type=wandering_trader,name=\"Pedagang Gelap\"]")
+	if err == nil && strings.Contains(output, "Test passed") {
+		return "❌ **PANGGILAN GAGAL:** Pedagang Gelap saat ini masih bersembunyi di suatu tempat! Temukan dia atau tunggu sampai dia menghilang (30 Menit) sebelum memanggil yang baru.", nil
+	}
 
-	// Random coordinates between -1000 and 1000
-	x := r.Intn(2001) - 1000
-	z := r.Intn(2001) - 1000
+	// Initialize random seed (disabled for developer phase)
+
+	// FASE DEVELOPER: Koordinat di set 0,0 agar mudah dicari
+	x := 0
+	z := 0
 
 	// RCON command to spawn the wandering trader
 	summonCmd := fmt.Sprintf(
@@ -28,7 +32,7 @@ func SpawnBlackMarket() (string, error) {
 	)
 
 	// Execute RCON
-	err := runRcon(summonCmd)
+	err = runRcon(summonCmd)
 	if err != nil {
 		return "", fmt.Errorf("gagal memanggil pedagang: %w", err)
 	}
