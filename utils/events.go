@@ -15,14 +15,15 @@ func SpawnBlackMarket() (string, error) {
 
 	// Initialize random seed (disabled for developer phase)
 
-	// FASE DEVELOPER: Koordinat di set 0,0 agar mudah dicari
-	x := 0
-	z := 0
+	// FASE DEVELOPER: Koordinat statis sesuai permintaan
+	x := -10
+	y := 75
+	z := 5
 
 	// RCON command to spawn the wandering trader
 	summonCmd := fmt.Sprintf(
-		`execute in minecraft:overworld positioned %d 319 %d run summon wandering_trader ~ ~ ~ {CustomName:'"Pedagang Gelap"',Invulnerable:1b,DespawnDelay:36000,ActiveEffects:[{id:"minecraft:slowness",amplifier:255b,duration:999999,show_particles:0b}],Offers:{Recipes:[{buy:{id:"minecraft:wither_skeleton_skull",count:1},buyB:{id:"minecraft:diamond",count:64},sell:{id:"minecraft:elytra",count:1},maxUses:1,rewardExp:0b}]}}`,
-		x, z,
+		`execute in minecraft:overworld positioned %d %d %d run summon wandering_trader ~ ~ ~ {CustomName:'"Pedagang Gelap"',Invulnerable:1b,DespawnDelay:36000,ActiveEffects:[{id:"minecraft:slowness",amplifier:255b,duration:999999,show_particles:0b}],Offers:{Recipes:[{buy:{id:"minecraft:wither_skeleton_skull",count:1},buyB:{id:"minecraft:diamond",count:64},sell:{id:"minecraft:elytra",count:1},maxUses:1,rewardExp:0b}]}}`,
+		x, y, z,
 	)
 
 	// Broadcast to the server
