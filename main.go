@@ -47,6 +47,19 @@ var (
 
 	commands = []*discordgo.ApplicationCommand{
 		{
+			Name:                     "unban",
+			Description:              "Unban a player from the server",
+			DefaultMemberPermissions: &defaultMemberPermisions,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "player",
+					Description: "Player name to unban",
+					Required:    true,
+				},
+			},
+		},
+		{
 			Name:                     "blackmarket",
 			Description:              "Panggil pedagang gelap ke koordinat acak",
 			DefaultMemberPermissions: &defaultMemberPermisions,
@@ -200,6 +213,10 @@ var (
 	}
 
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+		"unban": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			p := i.ApplicationCommandData().Options[0].StringValue()
+			utils.MessageHandler("unban", s, i, p)
+		},
 		"blackmarket": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,

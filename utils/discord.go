@@ -214,7 +214,29 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 		} else {
 			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Result: %s", output))
 		}
+	case "unban":
+		if !IsServiceRunning(servName) {
+			s.ChannelMessageSend(m.ChannelID, "Server is offline.")
+			return
+		}
+		output, err := sendRconCommand(fmt.Sprintf("pardon %s", p))
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, "Failed to unban player.")
+		} else {
+			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Result: %s", output))
+		}
 	case "op":
+		ownerID := os.Getenv("OWNER_ID")
+		userID := ""
+		if m.Member != nil {
+			userID = m.Member.User.ID
+		} else if m.User != nil {
+			userID = m.User.ID
+		}
+		if userID != ownerID {
+			s.ChannelMessageSend(m.ChannelID, "❌ Akses Ditolak: Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!")
+			return
+		}
 		if !IsServiceRunning(servName) {
 			s.ChannelMessageSend(m.ChannelID, "Server is offline.")
 			return
@@ -226,6 +248,17 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Result: %s", output))
 		}
 	case "deop":
+		ownerID := os.Getenv("OWNER_ID")
+		userID := ""
+		if m.Member != nil {
+			userID = m.Member.User.ID
+		} else if m.User != nil {
+			userID = m.User.ID
+		}
+		if userID != ownerID {
+			s.ChannelMessageSend(m.ChannelID, "❌ Akses Ditolak: Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!")
+			return
+		}
 		if !IsServiceRunning(servName) {
 			s.ChannelMessageSend(m.ChannelID, "Server is offline.")
 			return
