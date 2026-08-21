@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os/exec"
@@ -9,7 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -322,6 +325,116 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 		} else {
 			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Result: %s", output))
 		}
+	case "whereis":
+		ownerID := os.Getenv("OWNER_ID")
+		userID := ""
+		if m.Member != nil {
+			userID = m.Member.User.ID
+		} else if m.User != nil {
+			userID = m.User.ID
+		}
+		if userID != ownerID {
+			s.ChannelMessageSend(m.ChannelID, "❌ Akses Ditolak: Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!")
+			return
+		}
+		if !IsServiceRunning(servName) {
+			s.ChannelMessageSend(m.ChannelID, "Server is offline.")
+			return
+		}
+
+		outList, err := sendRconCommand("list")
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, "Failed to get player list.")
+			return
+		}
+
+		// Parse list output: "There are X of a max of Y players online: name1, name2"
+		listStr := string(outList)
+		idx := strings.Index(listStr, "online: ")
+		if idx == -1 {
+			s.ChannelMessageSend(m.ChannelID, "Tidak ada pemain yang online.")
+			return
+		}
+
+		playersPart := listStr[idx+8:]
+		if len(strings.TrimSpace(playersPart)) == 0 {
+			s.ChannelMessageSend(m.ChannelID, "Tidak ada pemain yang online.")
+			return
+		}
+
+		players := strings.Split(playersPart, ", ")
+		
+		var sb strings.Builder
+		sb.WriteString(fmt.Sprintf("**📍 Live Player Locations (%d Online):**\n\n", len(players)))
+
+		for _, p := range players {
+			p = strings.TrimSpace(p)
+			if p == "" {
+				continue
+			}
+
+			// Pos
+			posOut, _ := sendRconCommand(fmt.Sprintf("data get entity %s Pos", p))
+			posStr := string(posOut)
+			// expected: name has the following entity data: [X.Xd, Y.Yd, Z.Zd]
+			startB := strings.Index(posStr, "[")
+			endB := strings.Index(posStr, "]")
+			
+			coords := "Unknown"
+			if startB != -1 && endB != -1 {
+				rawCoords := posStr[startB+1 : endB]
+				parts := strings.Split(rawCoords, ", ")
+				if len(parts) == 3 {
+					x := strings.TrimSuffix(parts[0], "d")
+					y := strings.TrimSuffix(parts[1], "d")
+					z := strings.TrimSuffix(parts[2], "d")
+					// Convert floats to int display if possible, or just slice
+					x = strings.Split(x, ".")[0]
+					y = strings.Split(y, ".")[0]
+					z = strings.Split(z, ".")[0]
+					coords = fmt.Sprintf("X: %s, Y: %s, Z: %s", x, y, z)
+				}
+			}
+
+			// Dimension
+			dimOut, _ := sendRconCommand(fmt.Sprintf("data get entity %s Dimension", p))
+			dimStr := string(dimOut)
+			
+			dim := "Unknown"
+			if strings.Contains(dimStr, "\"minecraft:overworld\"") {
+				dim = "🌳 Overworld"
+			} else if strings.Contains(dimStr, "\"minecraft:the_nether\"") {
+				dim = "🔥 Nether"
+			} else if strings.Contains(dimStr, "\"minecraft:the_end\"") {
+				dim = "🌌 The End"
+			}
+
+			sb.WriteString(fmt.Sprintf("- **%s**: %s (%s)\n", p, dim, coords))
+		}
+
+		s.ChannelMessageSend(m.ChannelID, sb.String())
+
+	case "wllist":
+		mcPath := os.Getenv("MINECRAFT_PATH")
+		wlPath := filepath.Join(mcPath, "whitelist.json")
+		data, err := ioutil.ReadFile(wlPath)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, "❌ Gagal membaca whitelist.json")
+			return
+		}
+		var wl []struct {
+			Name string `json:"name"`
+		}
+		if err := json.Unmarshal(data, &wl); err != nil {
+			s.ChannelMessageSend(m.ChannelID, "❌ Gagal mem-parsing whitelist.json")
+			return
+		}
+		var names []string
+		for _, v := range wl {
+			names = append(names, "- " + v.Name)
+		}
+		msg := fmt.Sprintf("**📋 Daftar Pemain Whitelist (%%d):**\n```text\n%%s\n```", len(names), strings.Join(names, "\n"))
+		s.ChannelMessageSend(m.ChannelID, msg)
 	case "wl":
 		output, err := sendRconCommand(fmt.Sprintf("whitelist add %s", p))
 		if err != nil {

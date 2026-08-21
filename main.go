@@ -127,6 +127,14 @@ var (
 			DefaultMemberPermissions: &defaultMemberPermisions,
 		},
 		{
+			Name:        "wllist",
+			Description: "Melihat daftar pemain yang ada di whitelist",
+		},
+		{
+			Name:        "whereis",
+			Description: "Melacak lokasi seluruh pemain (Admin Only)",
+		},
+		{
 			Name:        "wl",
 			Description: "Whitelist a user on the Minecraft server",
 			Options: []*discordgo.ApplicationCommandOption{
@@ -582,6 +590,24 @@ var (
 				},
 			})
 			utils.MessageHandler("deop", s, i, username)
+		},
+		"whereis": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "**🌍 Melacak lokasi seluruh pemain...**",
+				},
+			})
+			utils.MessageHandler("whereis", s, i, "")
+		},
+		"wllist": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "**Mengambil data whitelist...**",
+				},
+			})
+			utils.MessageHandler("wllist", s, i, "")
 		},
 		"wl": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			options := i.ApplicationCommandData().Options
