@@ -26,7 +26,10 @@ var ansiRegex = regexp.MustCompile("\x1b\\[[0-9;]*[a-zA-Z]")
 // Helper function to send RCON commands
 func sendRconCommand(command string) (string, error) {
 	host := "127.0.0.1"
-	port := "25575"
+	port := os.Getenv("RCON_PORT")
+	if port == "" {
+		port = "25575" // fallback
+	}
 	password := os.Getenv("RCON_PASSWORD")
 
 	cmd := exec.Command("mcrcon",

@@ -29,7 +29,11 @@ var Titles = map[string]TeamInfo{
 
 func runRcon(cmdStr string) error {
 	rconPass := os.Getenv("RCON_PASSWORD")
-	cmd := exec.Command("mcrcon", "-H", "127.0.0.1", "-p", rconPass, cmdStr)
+	rconPort := os.Getenv("RCON_PORT")
+	if rconPort == "" {
+		rconPort = "25575"
+	}
+	cmd := exec.Command("mcrcon", "-H", "127.0.0.1", "-P", rconPort, "-p", rconPass, cmdStr)
 	err := cmd.Run()
 	if err != nil {
 		log.Printf("RCON failed for %s: %v", cmdStr, err)
