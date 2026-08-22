@@ -131,6 +131,18 @@ var (
 			Description: "Melihat daftar pemain yang ada di whitelist",
 		},
 		{
+			Name:        "gelar",
+			Description: "Pilih gelar (title) mana yang ingin Anda pakai di dalam game",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "username",
+					Description: "Username Minecraft Anda",
+					Required:    true,
+				},
+			},
+		},
+		{
 			Name:        "whereis",
 			Description: "Melacak lokasi seluruh pemain (Admin Only)",
 		},
@@ -591,6 +603,21 @@ var (
 			})
 			utils.MessageHandler("deop", s, i, username)
 		},
+		"gelar": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			options := i.ApplicationCommandData().Options
+			optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
+			for _, opt := range options {
+				optionMap[opt.Name] = opt
+			}
+			var username string
+			if opt, ok := optionMap["username"]; ok {
+				username = opt.StringValue()
+			}
+			
+			// We won't respond here immediately because we might need to send a complex UI response
+			// Wait, interaction must be responded to within 3 seconds. MessageHandler can do it.
+			utils.MessageHandler("gelar", s, i, username)
+		},
 		"whereis": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -632,10 +659,21 @@ var (
 	}
 )
 
+var componentHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+	"select_gelar": utils.HandleGelarSelection,
+}
+
 func init() {
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
-			h(s, i)
+		switch i.Type {
+		case discordgo.InteractionApplicationCommand:
+			if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
+				h(s, i)
+			}
+		case discordgo.InteractionMessageComponent:
+			if h, ok := componentHandlers[i.MessageComponentData().CustomID]; ok {
+				h(s, i)
+			}
 		}
 	})
 }

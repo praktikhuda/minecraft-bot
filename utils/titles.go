@@ -8,8 +8,22 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-		"strings"
+	"strings"
 )
+
+type TeamInfo struct {
+	JSONSuffix string
+	PlainName  string
+}
+
+var Titles = map[string]TeamInfo{
+	"deaths":       {"{\"text\":\" [Si Paling Tumbal]\",\"color\":\"red\"}", "[Si Paling Tumbal]"},
+	"player_kills": {"{\"text\":\" [Raja PVP]\",\"color\":\"dark_red\"}", "[Raja PVP]"},
+	"play_time":    {"{\"text\":\" [Sepuh Server]\",\"color\":\"yellow\"}", "[Sepuh Server]"},
+	"diamonds":     {"{\"text\":\" [Juragan Diamond]\",\"color\":\"aqua\"}", "[Juragan Diamond]"},
+	"totems":       {"{\"text\":\" [Sembilan Nyawa]\",\"color\":\"green\"}", "[Sembilan Nyawa]"},
+	"newbie":       {"{\"text\":\" [Warga Biasa]\",\"color\":\"gray\"}", "[Warga Biasa]"},
+}
 
 func runRcon(cmdStr string) error {
 	rconPass := os.Getenv("RCON_PASSWORD")
@@ -21,24 +35,23 @@ func runRcon(cmdStr string) error {
 	return err
 }
 
-func SyncTitles() (string, error) {
+func CalculateWinners() (map[string]string, error) {
 	mcPath := os.Getenv("MINECRAFT_PATH")
 	if mcPath == "" {
-		return "", fmt.Errorf("MINECRAFT_PATH is not set in .env")
+		return nil, fmt.Errorf("MINECRAFT_PATH is not set in .env")
 	}
 
 	uuidMap, err := getUUIDToNameMap(mcPath)
 	if err != nil {
-		return "", fmt.Errorf("Failed to read usercache.json: %v", err)
+		return nil, fmt.Errorf("Failed to read usercache.json: %v", err)
 	}
 
 	statsDir := filepath.Join(mcPath, "world", "players", "stats")
 	files, err := ioutil.ReadDir(statsDir)
 	if err != nil {
-		return "", fmt.Errorf("Failed to read stats directory: %v", err)
+		return nil, fmt.Errorf("Failed to read stats directory: %v", err)
 	}
 
-	// Maps to hold max score and the winner's name for each category
 	type winner struct {
 		Name  string
 		Score int
@@ -51,7 +64,6 @@ func SyncTitles() (string, error) {
 		"totems":       {Name: "", Score: 0},
 	}
 
-	// 1. Find the top players
 	for _, f := range files {
 		if !strings.HasSuffix(f.Name(), ".json") {
 			continue
@@ -84,33 +96,63 @@ func SyncTitles() (string, error) {
 		}
 	}
 
-	// 2. Clear old suffixes from EVERYONE (using weight 100)
-	for _, name := range uuidMap {
-		if name != "Unknown" {
-			runRcon(fmt.Sprintf("lp user %s meta removesuffix 100", name))
+	result := make(map[string]string)
+	for cat, win := range winners {
+		if win.Name != "" && win.Score > 0 {
+			result[cat] = win.Name
 		}
 	}
+	return result, nil
+}
 
-	// 3. Assign new suffixes
-	titles := map[string]string{
-		"deaths":       " &c[Si Paling Tumbal]",
-		"player_kills": " &4[Raja PVP]",
-		"play_time":    " &e[Sepuh Server]",
-		"diamonds":     " &b[Juragan Diamond]",
-		"totems":       " &a[Sembilan Nyawa]",
+func GetTitlesForPlayer(username string) (map[string]TeamInfo, error) {
+	winners, err := CalculateWinners()
+	if err != nil {
+		return nil, err
+	}
+
+	owned := make(map[string]TeamInfo)
+	for cat, winnerName := range winners {
+		if strings.EqualFold(winnerName, username) {
+			owned[cat] = Titles[cat]
+		}
+	}
+	return owned, nil
+}
+
+func SetupTeams() {
+	for cat, tInfo := range Titles {
+		teamName := "title_" + cat
+		runRcon(fmt.Sprintf("team add %s", teamName))
+		runRcon(fmt.Sprintf("team modify %s suffix %s", teamName, tInfo.JSONSuffix))
+	}
+}
+
+func SyncTitles() (string, error) {
+	winners, err := CalculateWinners()
+	if err != nil {
+		return "", err
+	}
+
+	SetupTeams()
+
+	for cat := range Titles {
+		if cat == "newbie" {
+			continue // Don't empty newbie team on sync, let them keep it
+		}
+		teamName := "title_" + cat
+		runRcon(fmt.Sprintf("team empty %s", teamName)) // Hapus semua pemain dari tim ini agar di-reset
 	}
 
 	var sb strings.Builder
 	sb.WriteString("**✅ Sinkronisasi Gelar (Titles) Berhasil!**\n\n")
 
-	for cat, win := range winners {
-		if win.Name != "" && win.Score > 0 {
-			suffix := titles[cat]
-			cmdStr := fmt.Sprintf("lp user %s meta addsuffix 100 \"%s\"", win.Name, suffix)
-			runRcon(cmdStr)
+	for cat, name := range winners {
+		teamName := "title_" + cat
+		runRcon(fmt.Sprintf("team join %s %s", teamName, name))
 
-			sb.WriteString(fmt.Sprintf("**%s** -> %s (Score: %d)\n", win.Name, strings.ReplaceAll(suffix, "&", ""), win.Score))
-		}
+		plainName := Titles[cat].PlainName
+		sb.WriteString(fmt.Sprintf("**%s** -> %s\n", name, plainName))
 	}
 
 	return sb.String(), nil
