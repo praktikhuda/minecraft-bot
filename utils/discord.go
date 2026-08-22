@@ -41,7 +41,6 @@ func sendRconCommand(command string) (string, error) {
 	return strings.TrimSpace(cleanOutput), err
 }
 
-
 func AutoStartLog(s *discordgo.Session) {
 	servName := os.Getenv("SERVICE_NAME")
 	syncChannel := os.Getenv("SYNC_CHANNEL_ID")
@@ -363,7 +362,7 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 		}
 
 		players := strings.Split(playersPart, ", ")
-		
+
 		var sb strings.Builder
 		sb.WriteString(fmt.Sprintf("**📍 Live Player Locations (%d Online):**\n\n", len(players)))
 
@@ -379,7 +378,7 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 			// expected: name has the following entity data: [X.Xd, Y.Yd, Z.Zd]
 			startB := strings.Index(posStr, "[")
 			endB := strings.Index(posStr, "]")
-			
+
 			coords := "Unknown"
 			if startB != -1 && endB != -1 {
 				rawCoords := posStr[startB+1 : endB]
@@ -399,7 +398,7 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 			// Dimension
 			dimOut, _ := sendRconCommand(fmt.Sprintf("data get entity %s Dimension", p))
 			dimStr := string(dimOut)
-			
+
 			dim := "Unknown"
 			if strings.Contains(dimStr, "\"minecraft:overworld\"") {
 				dim = "🌳 Overworld"
@@ -413,6 +412,42 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 		}
 
 		s.ChannelMessageSend(m.ChannelID, sb.String())
+
+	case "listleaderboard":
+		var sb strings.Builder
+		sb.WriteString("🏆 **Daftar Gelar (Leaderboard) Tersedia** 🏆\n\n")
+
+		grouped := make(map[string][]string)
+		for catKey, info := range Titles {
+			if catKey == "newbie" {
+				continue
+			}
+			if p != "" && !strings.EqualFold(info.Category, p) {
+				continue
+			}
+			grouped[info.Category] = append(grouped[info.Category], fmt.Sprintf("**%s**\n└ Cara dapat: *%s*", info.PlainName, info.Desc))
+		}
+
+		if len(grouped) == 0 {
+			s.InteractionRespond(m.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{Content: "Kategori tidak ditemukan atau belum ada gelar di kategori ini."},
+			})
+			return
+		}
+
+		for catName, items := range grouped {
+			sb.WriteString(fmt.Sprintf("📂 **Kategori: %s**\n", strings.ToUpper(catName)))
+			for _, item := range items {
+				sb.WriteString(item + "\n")
+			}
+			sb.WriteString("\n")
+		}
+
+		s.InteractionRespond(m.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{Content: sb.String()},
+		})
 
 	case "gelar":
 		if p == "" {
@@ -490,7 +525,7 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 		}
 		var names []string
 		for _, v := range wl {
-			names = append(names, "- " + v.Name)
+			names = append(names, "- "+v.Name)
 		}
 		msg := fmt.Sprintf("**📋 Daftar Pemain Whitelist (%%d):**\n```text\n%%s\n```", len(names), strings.Join(names, "\n"))
 		s.ChannelMessageSend(m.ChannelID, msg)
@@ -559,13 +594,13 @@ func HandleGelarSelection(s *discordgo.Session, i *discordgo.InteractionCreate) 
 	category := parts[1]
 
 	teamName := "title_" + category
-	
+
 	// Create the team if it doesn't exist just in case
 	runRcon(fmt.Sprintf("team add %s", teamName))
 	if tInfo, ok := Titles[category]; ok {
 		runRcon(fmt.Sprintf("team modify %s suffix %s", teamName, tInfo.JSONSuffix))
 	}
-	
+
 	out, err := sendRconCommand(fmt.Sprintf("team join %s %s", teamName, username))
 
 	msg := "Gelar berhasil dipasang!"
@@ -582,7 +617,7 @@ func HandleGelarSelection(s *discordgo.Session, i *discordgo.InteractionCreate) 
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseUpdateMessage,
 		Data: &discordgo.InteractionResponseData{
-			Content: msg,
+			Content:    msg,
 			Components: []discordgo.MessageComponent{},
 		},
 	})

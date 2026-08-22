@@ -77,7 +77,17 @@ This project is a Discord Bot written in Go, specifically designed to control, m
 
 ## 8. Development & Debugging Access (VPS)
 If direct server debugging is required, you can SSH into the production server using the following credentials:
+
+deploy []
 - **IP Address:** 147.93.159.183
 - **User:** minecraft
 - **Password:** minecraft12345
 - **System Architecture:** systemd (`mcbot` service for golang bot, `minecraft-server` service for the Minecraft server)
+
+deploy [x]
+- **IP Address:** 147.93.159.183
+- **User:** mcserv
+- **Password:** mc12345
+- **System Architecture:** systemd (`mcgo` service for golang bot, `mcserver` service for the Minecraft server)
+
+

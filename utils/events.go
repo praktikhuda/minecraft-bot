@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-		"strings"
+	"strings"
 )
 
 // SpawnBlackMarket generates random coordinates and spawns a custom wandering trader.
@@ -46,7 +46,7 @@ func SpawnBlackMarket() (string, error) {
 
 	// Message to return to Discord
 	discordMsg := fmt.Sprintf("**🚨 EVENT BLACK MARKET DIMULAI 🚨**\n\nPedagang Gelap telah dipanggil di koordinat **X: %d, Z: %d**!\n\nBarang yang dijual:\n- 🪽 **1x Elytra**\nHarga:\n- 💀 **1x Wither Skeleton Skull**\n- 💎 **64x Diamond**\n\nStok hanya **1**. Waktu memburu: **30 Menit**!", x, z)
-	
+
 	return discordMsg, nil
 }
 

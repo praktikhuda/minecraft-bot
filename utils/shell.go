@@ -53,6 +53,14 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 			return
 		default:
 			line := scanner.Text()
+
+			CurrentTourney.Mutex.Lock()
+			isActive := CurrentTourney.IsActive
+			CurrentTourney.Mutex.Unlock()
+			if isActive {
+				go HandleKillEvent(line)
+			}
+
 			if strings.Contains(line, "#msg") || strings.Contains(line, "joined the game") || strings.Contains(line, "left the game") || strings.Contains(line, "For help, type") || strings.Contains(line, "You are not white-listed on this server") {
 				fmt.Println("server: ", line)
 				msg := strings.Split(line, ":")

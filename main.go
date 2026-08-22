@@ -131,6 +131,36 @@ var (
 			Description: "Melihat daftar pemain yang ada di whitelist",
 		},
 		{
+			Name:        "listleaderboard",
+			Description: "Lihat daftar gelar (leaderboard) yang bisa Anda perebutkan",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "kategori",
+					Description: "Filter berdasarkan kategori (Petarung / Penjelajah / Pekerja Keras)",
+					Required:    false,
+				},
+			},
+		},
+		{
+			Name:        "tourney",
+			Description: "Mulai turnamen PVP 1-Lawan-1 di Arena",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "player1",
+					Description: "Nama pemain pertama di dalam game",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "player2",
+					Description: "Nama pemain kedua di dalam game",
+					Required:    true,
+				},
+			},
+		},
+		{
 			Name:        "gelar",
 			Description: "Pilih gelar (title) mana yang ingin Anda pakai di dalam game",
 			Options: []*discordgo.ApplicationCommandOption{
@@ -603,6 +633,27 @@ var (
 			})
 			utils.MessageHandler("deop", s, i, username)
 		},
+		"listleaderboard": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			options := i.ApplicationCommandData().Options
+			var kategori string
+			if len(options) > 0 {
+				kategori = options[0].StringValue()
+			}
+			utils.MessageHandler("listleaderboard", s, i, kategori)
+		},
+		"tourney": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{Content: "❌ Anda tidak memiliki izin untuk memulai turnamen!"},
+				})
+				return
+			}
+			options := i.ApplicationCommandData().Options
+			p1 := options[0].StringValue()
+			p2 := options[1].StringValue()
+			utils.StartTourney(s, i, p1, p2)
+		},
 		"gelar": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			options := i.ApplicationCommandData().Options
 			optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
@@ -613,7 +664,7 @@ var (
 			if opt, ok := optionMap["username"]; ok {
 				username = opt.StringValue()
 			}
-			
+
 			// We won't respond here immediately because we might need to send a complex UI response
 			// Wait, interaction must be responded to within 3 seconds. MessageHandler can do it.
 			utils.MessageHandler("gelar", s, i, username)
@@ -677,7 +728,6 @@ func init() {
 		}
 	})
 }
-
 
 func isOwner(i *discordgo.InteractionCreate) bool {
 	var userID string

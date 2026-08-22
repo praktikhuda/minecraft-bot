@@ -14,15 +14,17 @@ import (
 type TeamInfo struct {
 	JSONSuffix string
 	PlainName  string
+	Category   string
+	Desc       string
 }
 
 var Titles = map[string]TeamInfo{
-	"deaths":       {"{\"text\":\" [Si Paling Tumbal]\",\"color\":\"red\"}", "[Si Paling Tumbal]"},
-	"player_kills": {"{\"text\":\" [Raja PVP]\",\"color\":\"dark_red\"}", "[Raja PVP]"},
-	"play_time":    {"{\"text\":\" [Sepuh Server]\",\"color\":\"yellow\"}", "[Sepuh Server]"},
-	"diamonds":     {"{\"text\":\" [Juragan Diamond]\",\"color\":\"aqua\"}", "[Juragan Diamond]"},
-	"totems":       {"{\"text\":\" [Sembilan Nyawa]\",\"color\":\"green\"}", "[Sembilan Nyawa]"},
-	"newbie":       {"{\"text\":\" [Warga Biasa]\",\"color\":\"gray\"}", "[Warga Biasa]"},
+	"deaths":       {"{\"text\":\" [Si Paling Tumbal]\",\"color\":\"red\"}", "[Si Paling Tumbal]", "Petarung", "Paling banyak mati (tumbal)."},
+	"player_kills": {"{\"text\":\" [Raja PVP]\",\"color\":\"dark_red\"}", "[Raja PVP]", "Petarung", "Paling banyak membunuh pemain lain."},
+	"play_time":    {"{\"text\":\" [Sepuh Server]\",\"color\":\"yellow\"}", "[Sepuh Server]", "Penjelajah", "Total waktu bermain tertinggi."},
+	"diamonds":     {"{\"text\":\" [Juragan Diamond]\",\"color\":\"aqua\"}", "[Juragan Diamond]", "Pekerja Keras", "Menambang Diamond terbanyak."},
+	"totems":       {"{\"text\":\" [Sembilan Nyawa]\",\"color\":\"green\"}", "[Sembilan Nyawa]", "Petarung", "Paling sering selamat dari kematian (Totem)."},
+	"newbie":       {"{\"text\":\" [Warga Biasa]\",\"color\":\"gray\"}", "[Warga Biasa]", "Lainnya", "Gelar default."},
 }
 
 func runRcon(cmdStr string) error {
