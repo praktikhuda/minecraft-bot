@@ -80,7 +80,13 @@ func StoreInventoryInVault(playerName string, vaultX, vaultY, vaultZ int) {
 	slots = append(slots, "armor.head", "armor.chest", "armor.legs", "armor.feet", "weapon.offhand")
 
 	for i, slotName := range slots {
-		runRcon(fmt.Sprintf("item replace block %d %d %d container.%d from entity %s %s", vaultX, vaultY, vaultZ, i, playerName, slotName))
+		y := vaultY
+		slotIdx := i
+		if i > 26 {
+			y = vaultY + 1
+			slotIdx = i - 27
+		}
+		runRcon(fmt.Sprintf("item replace block %d %d %d container.%d from entity %s %s", vaultX, y, vaultZ, slotIdx, playerName, slotName))
 		time.Sleep(50 * time.Millisecond) // avoid spamming server too hard
 	}
 }
@@ -97,11 +103,23 @@ func RestoreInventoryFromVault(playerName string, vaultX, vaultY, vaultZ int) {
 	slots = append(slots, "armor.head", "armor.chest", "armor.legs", "armor.feet", "weapon.offhand")
 
 	for i, slotName := range slots {
-		runRcon(fmt.Sprintf("item replace entity %s %s from block %d %d %d container.%d", playerName, slotName, vaultX, vaultY, vaultZ, i))
+		y := vaultY
+		slotIdx := i
+		if i > 26 {
+			y = vaultY + 1
+			slotIdx = i - 27
+		}
+		runRcon(fmt.Sprintf("item replace entity %s %s from block %d %d %d container.%d", playerName, slotName, vaultX, y, vaultZ, slotIdx))
 		time.Sleep(50 * time.Millisecond)
 	}
 
 	for i := 0; i < len(slots); i++ {
-		runRcon(fmt.Sprintf("item replace block %d %d %d container.%d with air", vaultX, vaultY, vaultZ, i))
+		y := vaultY
+		slotIdx := i
+		if i > 26 {
+			y = vaultY + 1
+			slotIdx = i - 27
+		}
+		runRcon(fmt.Sprintf("item replace block %d %d %d container.%d with air", vaultX, y, vaultZ, slotIdx))
 	}
 }

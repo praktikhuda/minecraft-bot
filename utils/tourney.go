@@ -43,11 +43,11 @@ var (
 	BaseVaultZ = 0
 )
 
-// PrepareChest ensures a double chest exists at the vault coordinates
+// PrepareChest ensures barrels exist at the vault coordinates
 func PrepareChest(x, y, z int) {
-	// A double chest requires 2 chests side by side
-	runRcon(fmt.Sprintf("setblock %d %d %d chest", x, y, z))
-	runRcon(fmt.Sprintf("setblock %d %d %d chest", x+1, y, z))
+	// Use 2 barrels stacked vertically for 54 slots total
+	runRcon(fmt.Sprintf("setblock %d %d %d barrel", x, y, z))
+	runRcon(fmt.Sprintf("setblock %d %d %d barrel", x, y+1, z))
 }
 
 // GiveStarterPack gives the gladiator kit
