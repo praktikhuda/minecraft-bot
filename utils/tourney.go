@@ -187,6 +187,8 @@ func EndTourney(reason, winner string) {
 			s.ChannelMessageSend(ch, fmt.Sprintf("⏳ **WAKTU HABIS (10 Menit)!**\nPertarungan **%s** vs **%s** berakhir SERI! Mengembalikan pemain ke asal...", p1, p2))
 		} else if reason == "KILL" {
 			s.ChannelMessageSend(ch, fmt.Sprintf("🏆 **PERTARUNGAN SELESAI!**\nPemenangnya adalah: **%s**!\nMengembalikan pemain ke asal...", winner))
+		} else if reason == "CANCEL" {
+			s.ChannelMessageSend(ch, "🛑 **TURNAMEN DIBATALKAN SECARA PAKSA!**\nMembersihkan arena dan mengembalikan pemain ke asal...")
 		}
 	}
 
@@ -242,4 +244,25 @@ func HandleKillEvent(logLine string) {
 		EndTourney("KILL", p1)
 		return
 	}
+}
+
+// ForceClearTourney forcibly cancels an active tournament
+func ForceClearTourney(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	CurrentTourney.Mutex.Lock()
+	isActive := CurrentTourney.IsActive
+	CurrentTourney.Mutex.Unlock()
+
+	if !isActive {
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{Content: "⚠ Tidak ada turnamen yang sedang berlangsung!"},
+		})
+		return
+	}
+
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{Content: "Memproses pembatalan turnamen..."},
+	})
+	EndTourney("CANCEL", "")
 }

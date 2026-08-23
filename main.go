@@ -143,6 +143,10 @@ var (
 			},
 		},
 		{
+			Name:        "cleartourney",
+			Description: "Membatalkan turnamen PVP yang sedang berlangsung secara paksa",
+		},
+		{
 			Name:        "tourney",
 			Description: "Mulai turnamen PVP 1-Lawan-1 di Arena",
 			Options: []*discordgo.ApplicationCommandOption{
@@ -640,6 +644,16 @@ var (
 				kategori = options[0].StringValue()
 			}
 			utils.MessageHandler("listleaderboard", s, i, kategori)
+		},
+		"cleartourney": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !isOwner(i) {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{Content: "❌ Anda tidak memiliki izin untuk perintah ini!"},
+				})
+				return
+			}
+			utils.ForceClearTourney(s, i)
 		},
 		"tourney": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			if !isOwner(i) {
