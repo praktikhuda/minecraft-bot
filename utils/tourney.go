@@ -54,14 +54,17 @@ func PrepareChest(x, y, z int) {
 func GiveStarterPack(player string) {
 	runRcon(fmt.Sprintf("clear %s", player))
 	time.Sleep(100 * time.Millisecond)
+	
+	runRcon(fmt.Sprintf("item replace entity %s armor.head with iron_helmet", player))
+	runRcon(fmt.Sprintf("item replace entity %s armor.chest with iron_chestplate", player))
+	runRcon(fmt.Sprintf("item replace entity %s armor.legs with iron_leggings", player))
+	runRcon(fmt.Sprintf("item replace entity %s armor.feet with iron_boots", player))
+	runRcon(fmt.Sprintf("item replace entity %s weapon.offhand with shield", player))
+	
 	runRcon(fmt.Sprintf("give %s iron_sword 1", player))
-	runRcon(fmt.Sprintf("give %s shield 1", player))
-	runRcon(fmt.Sprintf("give %s iron_helmet 1", player))
-	runRcon(fmt.Sprintf("give %s iron_chestplate 1", player))
-	runRcon(fmt.Sprintf("give %s iron_leggings 1", player))
-	runRcon(fmt.Sprintf("give %s iron_boots 1", player))
 	runRcon(fmt.Sprintf("give %s cooked_beef 64", player))
 	runRcon(fmt.Sprintf("give %s golden_apple 1", player))
+	
 	runRcon(fmt.Sprintf("effect give %s instant_health 1 10", player))
 	runRcon(fmt.Sprintf("effect give %s saturation 1 10", player))
 }
@@ -143,6 +146,24 @@ func StartTourney(s *discordgo.Session, i *discordgo.InteractionCreate, p1, p2 s
 	}()
 }
 
+func restorePlayer(p string, pos Pos3D, dim string, vaultX, vaultY, vaultZ int) {
+	go func() {
+		timeout := time.Now().Add(5 * time.Minute)
+		for time.Now().Before(timeout) {
+			out, _ := runRconWithReply(fmt.Sprintf("data get entity %s Health", p))
+			if !strings.Contains(out, "No entity was found") && !strings.Contains(out, " 0.0f") && !strings.Contains(out, " 0f") {
+				time.Sleep(1 * time.Second)
+				runRcon(fmt.Sprintf("execute in %s run tp %s %f %f %f", dim, p, pos.X, pos.Y, pos.Z))
+				time.Sleep(1 * time.Second)
+				runRcon(fmt.Sprintf("clear %s", p))
+				RestoreInventoryFromVault(p, vaultX, vaultY, vaultZ)
+				return
+			}
+			time.Sleep(2 * time.Second)
+		}
+	}()
+}
+
 func EndTourney(reason, winner string) {
 	CurrentTourney.Mutex.Lock()
 	if !CurrentTourney.IsActive {
@@ -169,19 +190,13 @@ func EndTourney(reason, winner string) {
 		}
 	}
 
+	// Bersihkan dropped items di dalam arena
 	go func() {
-		// Teleport back
-		runRcon(fmt.Sprintf("execute in %s run tp %s %f %f %f", CurrentTourney.P1Dim, p1, CurrentTourney.P1Pos.X, CurrentTourney.P1Pos.Y, CurrentTourney.P1Pos.Z))
-		runRcon(fmt.Sprintf("execute in %s run tp %s %f %f %f", CurrentTourney.P2Dim, p2, CurrentTourney.P2Pos.X, CurrentTourney.P2Pos.Y, CurrentTourney.P2Pos.Z))
-		
-		time.Sleep(1 * time.Second)
-		runRcon(fmt.Sprintf("clear %s", p1))
-		runRcon(fmt.Sprintf("clear %s", p2))
-
-		// Restore
-		RestoreInventoryFromVault(p1, CurrentTourney.Vault1X, CurrentTourney.Vault1Y, CurrentTourney.Vault1Z)
-		RestoreInventoryFromVault(p2, CurrentTourney.Vault2X, CurrentTourney.Vault2Y, CurrentTourney.Vault2Z)
+		runRcon(fmt.Sprintf("kill @e[type=item,x=%d,y=%d,z=%d,dx=30,dy=7,dz=30]", ArenaX-15, ArenaY-1, ArenaZ-15))
 	}()
+
+	restorePlayer(p1, CurrentTourney.P1Pos, CurrentTourney.P1Dim, CurrentTourney.Vault1X, CurrentTourney.Vault1Y, CurrentTourney.Vault1Z)
+	restorePlayer(p2, CurrentTourney.P2Pos, CurrentTourney.P2Dim, CurrentTourney.Vault2X, CurrentTourney.Vault2Y, CurrentTourney.Vault2Z)
 }
 
 func ResetTourney() {
