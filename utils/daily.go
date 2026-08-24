@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+	"os"
+	"os/exec"
 	"sync"
 	"time"
 
@@ -124,9 +126,9 @@ func generateDailyQuests() {
 	CurrentDaily.ResetTime = nextReset
 
 	// Add new scoreboards
-	runRcon(fmt.Sprintf(`scoreboard objectives add daily_easy %s "%s"`, eQuest.ScoreboardCri, eQuest.Name))
-	runRcon(fmt.Sprintf(`scoreboard objectives add daily_med %s "%s"`, mQuest.ScoreboardCri, mQuest.Name))
-	runRcon(fmt.Sprintf(`scoreboard objectives add daily_hard %s "%s"`, hQuest.ScoreboardCri, hQuest.Name))
+	runRcon(fmt.Sprintf(`scoreboard objectives add daily_easy %s {"text":"%s"}`, eQuest.ScoreboardCri, eQuest.Name))
+	runRcon(fmt.Sprintf(`scoreboard objectives add daily_med %s {"text":"%s"}`, mQuest.ScoreboardCri, mQuest.Name))
+	runRcon(fmt.Sprintf(`scoreboard objectives add daily_hard %s {"text":"%s"}`, hQuest.ScoreboardCri, hQuest.Name))
 
 	// Display only one on sidebar (e.g. Hard mission)
 }
@@ -138,29 +140,27 @@ func checkQuestProgress() {
 		CurrentDaily.ActiveQuests[Medium],
 		CurrentDaily.ActiveQuests[Hard],
 	}
-	// s := CurrentDaily.Session
-	// ch := CurrentDaily.ChannelID
 	CurrentDaily.Mutex.Unlock()
 
+	var batchCmds []string
+
 	for _, q := range quests {
-		// Use Minecraft selector to target everyone who reached the score!
 		rewardCmd := strings.Replace(q.RewardCmd, "%s", "@s", -1)
-
-		// 1. Give reward
-		runRcon(fmt.Sprintf("execute as @a[scores={%s=%d..}] run %s", q.ScoreboardObj, q.Target, rewardCmd))
-
-		// 2. Play victory sound
-		runRcon(fmt.Sprintf("execute as @a[scores={%s=%d..}] run playsound entity.player.levelup master @s", q.ScoreboardObj, q.Target))
 		
+		// 1. Give reward
+		batchCmds = append(batchCmds, fmt.Sprintf("execute as @a[scores={%s=%d..}] run %s", q.ScoreboardObj, q.Target, rewardCmd))
+		// 2. Play victory sound
+		batchCmds = append(batchCmds, fmt.Sprintf("execute as @a[scores={%s=%d..}] run playsound entity.player.levelup master @s", q.ScoreboardObj, q.Target))
 		// 3. Announce in-game
-		runRcon(fmt.Sprintf(`execute as @a[scores={%s=%d..}] run tellraw @a [{"text":"[Daily Quest] ","color":"green"},{"selector":"@s"},{"text":" telah menyelesaikan misi ","color":"yellow"},{"text":"%s","color":"gold","bold":true},{"text":"!","color":"yellow"}]`, q.ScoreboardObj, q.Target, q.Name))
+		batchCmds = append(batchCmds, fmt.Sprintf(`execute as @a[scores={%s=%d..}] run tellraw @a [{"text":"[Daily Quest] ","color":"green"},{"selector":"@s"},{"text":" telah menyelesaikan misi ","color":"yellow"},{"text":"%s","color":"gold","bold":true},{"text":"!","color":"yellow"}]`, q.ScoreboardObj, q.Target, q.Name))
+		// 4. Mark as complete
+		batchCmds = append(batchCmds, fmt.Sprintf("scoreboard players set @a[scores={%s=%d..}] %s -99999", q.ScoreboardObj, q.Target, q.ScoreboardObj))
+	}
 
-		// 4. Mark as complete by setting their score to negative so they don't get rewards repeatedly today
-		runRcon(fmt.Sprintf("scoreboard players set @a[scores={%s=%d..}] %s -99999", q.ScoreboardObj, q.Target, q.ScoreboardObj))
+	if len(batchCmds) > 0 {
+		runRconBatch(batchCmds...)
 	}
 }
-
-// GenerateDailyEmbed creates a rich discord embed for /daily
 func GenerateDailyEmbed() *discordgo.MessageEmbed {
 	CurrentDaily.Mutex.Lock()
 	defer CurrentDaily.Mutex.Unlock()
@@ -191,4 +191,17 @@ func GenerateDailyEmbed() *discordgo.MessageEmbed {
 	}
 
 	return embed
+}
+
+func runRconBatch(commands ...string) {
+	rconPass := os.Getenv("RCON_PASSWORD")
+	rconPort := os.Getenv("RCON_PORT")
+	if rconPort == "" {
+		rconPort = "25575"
+	}
+	args := []string{"-H", "127.0.0.1", "-P", rconPort, "-p", rconPass}
+	args = append(args, commands...)
+	
+	cmd := exec.Command("mcrcon", args...)
+	cmd.CombinedOutput()
 }
