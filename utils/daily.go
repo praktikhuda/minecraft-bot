@@ -129,7 +129,6 @@ func generateDailyQuests() {
 	runRcon(fmt.Sprintf(`scoreboard objectives add daily_hard %s "%s"`, hQuest.ScoreboardCri, hQuest.Name))
 
 	// Display only one on sidebar (e.g. Hard mission)
-	runRcon("scoreboard objectives setdisplay sidebar daily_hard")
 }
 
 func checkQuestProgress() {
