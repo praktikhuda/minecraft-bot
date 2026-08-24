@@ -147,6 +147,10 @@ var (
 			Description: "Membatalkan turnamen PVP yang sedang berlangsung secara paksa",
 		},
 		{
+			Name:        "daily",
+			Description: "Lihat Misi Harian yang tersedia hari ini",
+		},
+		{
 			Name:        "tourney",
 			Description: "Mulai turnamen PVP 1-Lawan-1 di Arena",
 			Options: []*discordgo.ApplicationCommandOption{
@@ -645,6 +649,15 @@ var (
 			}
 			utils.MessageHandler("listleaderboard", s, i, kategori)
 		},
+		"daily": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			embed := utils.GenerateDailyEmbed()
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds: []*discordgo.MessageEmbed{embed},
+				},
+			})
+		},
 		"cleartourney": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			if !isOwner(i) {
 				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -757,6 +770,12 @@ func isOwner(i *discordgo.InteractionCreate) bool {
 func main() {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
+		
+		// Setup Daily System on the sync channel if defined
+		syncChannel := os.Getenv("SYNC_CHANNEL_ID")
+		if syncChannel != "" {
+			utils.InitDailySystem(s, syncChannel)
+		}
 	})
 
 	s.AddHandler(utils.CrossChatHandler)
