@@ -131,6 +131,33 @@ func generateDailyQuests() {
 	runRcon(fmt.Sprintf(`scoreboard objectives add daily_hard %s {"text":"%s"}`, hQuest.ScoreboardCri, hQuest.Name))
 
 	// Display only one on sidebar (e.g. Hard mission)
+
+	// Dynamically generate SimpleScore scoreboards.yml
+	yamlContent := fmt.Sprintf(`quests:
+  update: 20
+  titles:
+    - '&6&l====== DAILY QUESTS ======'
+    - '&e&l====== DAILY QUESTS ======'
+  scores:
+    11: ''
+    10: '&a&l[Mudah] &f%s'
+    9: '&7  Progress Anda: &a%%objective_score_daily_easy%%'
+    8: ''
+    7: '&e&l[Sedang] &f%s'
+    6: '&7  Progress Anda: &e%%objective_score_daily_med%%'
+    5: ''
+    4: '&c&l[Sulit] &f%s'
+    3: '&7  Progress Anda: &c%%objective_score_daily_hard%%'
+    2: ''
+    1: '&6=========================='
+`, eQuest.Name, mQuest.Name, hQuest.Name)
+
+	writeCmd := fmt.Sprintf("echo 'mc12345' | sudo -S bash -c \"cat << 'EOF' > /home/mcserv/server-minecraft/plugins/SimpleScore/scoreboards.yml\n%s\nEOF\"", yamlContent)
+	exec.Command("bash", "-c", writeCmd).Run()
+	
+	// Reload SimpleScore
+	runRcon("simplescore reload")
+
 }
 
 func checkQuestProgress() {
