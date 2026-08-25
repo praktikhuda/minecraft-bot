@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func runRconWithReply(cmdStr string) (string, error) {
+func RunRconWithReply(cmdStr string) (string, error) {
 	rconPass := os.Getenv("RCON_PASSWORD")
 	rconPort := os.Getenv("RCON_PORT")
 	if rconPort == "" {
@@ -35,7 +35,7 @@ type Pos3D struct {
 
 // GetPlayerPos uses RCON to get a player's coordinates
 func GetPlayerPos(playerName string) (Pos3D, error) {
-	out, err := runRconWithReply(fmt.Sprintf("data get entity %s Pos", playerName))
+	out, err := RunRconWithReply(fmt.Sprintf("data get entity %s Pos", playerName))
 	if err != nil {
 		return Pos3D{}, err
 	}
@@ -55,7 +55,7 @@ func GetPlayerPos(playerName string) (Pos3D, error) {
 
 // GetPlayerDimension gets the dimension of a player
 func GetPlayerDimension(playerName string) (string, error) {
-	out, err := runRconWithReply(fmt.Sprintf("data get entity %s Dimension", playerName))
+	out, err := RunRconWithReply(fmt.Sprintf("data get entity %s Dimension", playerName))
 	if err != nil {
 		return "", err
 	}
@@ -86,7 +86,7 @@ func StoreInventoryInVault(playerName string, vaultX, vaultY, vaultZ int) {
 			y = vaultY + 1
 			slotIdx = i - 27
 		}
-		runRcon(fmt.Sprintf("item replace block %d %d %d container.%d from entity %s %s", vaultX, y, vaultZ, slotIdx, playerName, slotName))
+		RunRcon(fmt.Sprintf("item replace block %d %d %d container.%d from entity %s %s", vaultX, y, vaultZ, slotIdx, playerName, slotName))
 		time.Sleep(50 * time.Millisecond) // avoid spamming server too hard
 	}
 }
@@ -109,7 +109,7 @@ func RestoreInventoryFromVault(playerName string, vaultX, vaultY, vaultZ int) {
 			y = vaultY + 1
 			slotIdx = i - 27
 		}
-		runRcon(fmt.Sprintf("item replace entity %s %s from block %d %d %d container.%d", playerName, slotName, vaultX, y, vaultZ, slotIdx))
+		RunRcon(fmt.Sprintf("item replace entity %s %s from block %d %d %d container.%d", playerName, slotName, vaultX, y, vaultZ, slotIdx))
 		time.Sleep(50 * time.Millisecond)
 	}
 
@@ -120,6 +120,6 @@ func RestoreInventoryFromVault(playerName string, vaultX, vaultY, vaultZ int) {
 			y = vaultY + 1
 			slotIdx = i - 27
 		}
-		runRcon(fmt.Sprintf("item replace block %d %d %d container.%d with air", vaultX, y, vaultZ, slotIdx))
+		RunRcon(fmt.Sprintf("item replace block %d %d %d container.%d with air", vaultX, y, vaultZ, slotIdx))
 	}
 }

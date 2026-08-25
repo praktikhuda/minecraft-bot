@@ -66,19 +66,526 @@ var (
 		},
 		{
 			Name:        "leaderboard",
-			Description: "View player statistics leaderboard",
+			Description: "Lihat papan peringkat",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
-					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "category",
-					Description: "Select leaderboard category",
-					Required:    true,
-					Choices: []*discordgo.ApplicationCommandOptionChoice{
-						{Name: "Paling Sering Mati (Deaths)", Value: "deaths"},
-						{Name: "Raja PVP (Kills)", Value: "player_kills"},
-						{Name: "Paling Lama Bermain", Value: "play_time"},
-						{Name: "Penambang Diamond", Value: "diamonds"},
-						{Name: "Sembilan Nyawa (Totem)", Value: "totems"},
+					Name:        "combat",
+					Description: "Statistik Pertarungan PVP & PVE",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "kategori",
+							Description: "Pilih kategori",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Raja PVP",
+									Value: "minecraft:custom:player_kills",
+								},
+								{
+									Name:  "Ahli Panah",
+									Value: "minecraft:used:bow",
+								},
+								{
+									Name:  "Sniper Jarak Jauh",
+									Value: "minecraft:custom:target_hit",
+								},
+								{
+									Name:  "Penguasa Trident",
+									Value: "minecraft:used:trident",
+								},
+								{
+									Name:  "Sembilan Nyawa",
+									Value: "minecraft:used:totem_of_undying",
+								},
+								{
+									Name:  "Si Paling Samsak",
+									Value: "minecraft:custom:damage_taken",
+								},
+								{
+									Name:  "Haus Darah",
+									Value: "minecraft:custom:damage_dealt",
+								},
+								{
+									Name:  "Ahli Pedang",
+									Value: "minecraft:used:netherite_sword",
+								},
+								{
+									Name:  "Si Paling Rapuh",
+									Value: "minecraft:custom:damage_resisted",
+								},
+
+							},
+						},
+					},
+				},
+				{
+					Name:        "hunt",
+					Description: "Statistik Membunuh Monster & Boss",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "kategori",
+							Description: "Pilih kategori",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Pembantai Zombie",
+									Value: "minecraft:killed:zombie",
+								},
+								{
+									Name:  "Pembantai Skeleton",
+									Value: "minecraft:killed:skeleton",
+								},
+								{
+									Name:  "Pembantai Creeper",
+									Value: "minecraft:killed:creeper",
+								},
+								{
+									Name:  "Pembunuh Naga",
+									Value: "minecraft:killed:ender_dragon",
+								},
+								{
+									Name:  "Penjaga Desa",
+									Value: "minecraft:killed:pillager",
+								},
+								{
+									Name:  "Gladiator",
+									Value: "minecraft:killed:wither",
+								},
+								{
+									Name:  "Pemburu Phantom",
+									Value: "minecraft:killed:phantom",
+								},
+								{
+									Name:  "Tukang Tipu Piglin",
+									Value: "minecraft:killed:piglin",
+								},
+								{
+									Name:  "Pemburu Enderman",
+									Value: "minecraft:killed:enderman",
+								},
+
+							},
+						},
+					},
+				},
+				{
+					Name:        "mining",
+					Description: "Statistik Menambang & Pekerja",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "kategori",
+							Description: "Pilih kategori",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Juragan Diamond",
+									Value: "minecraft:mined:diamond_ore",
+								},
+								{
+									Name:  "Pencari Netherite",
+									Value: "minecraft:mined:ancient_debris",
+								},
+								{
+									Name:  "Kuli Batu",
+									Value: "minecraft:mined:stone",
+								},
+								{
+									Name:  "Tukang Gali",
+									Value: "minecraft:mined:dirt",
+								},
+								{
+									Name:  "Raja Hutan",
+									Value: "minecraft:mined:oak_log",
+								},
+								{
+									Name:  "Penambang Emas",
+									Value: "minecraft:mined:gold_ore",
+								},
+								{
+									Name:  "Petani Gandum",
+									Value: "minecraft:mined:wheat",
+								},
+								{
+									Name:  "Petani Wortel",
+									Value: "minecraft:mined:carrots",
+								},
+								{
+									Name:  "Pemecah Pickaxe",
+									Value: "minecraft:broken:diamond_pickaxe",
+								},
+								{
+									Name:  "Penggila Redstone",
+									Value: "minecraft:mined:redstone_ore",
+								},
+								{
+									Name:  "Tukang Gali Pasir",
+									Value: "minecraft:mined:sand",
+								},
+								{
+									Name:  "Penambang Lapis",
+									Value: "minecraft:mined:lapis_ore",
+								},
+								{
+									Name:  "Pembersih Nether",
+									Value: "minecraft:mined:netherrack",
+								},
+
+							},
+						},
+					},
+				},
+				{
+					Name:        "explore",
+					Description: "Statistik Penjelajah & Waktu",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "kategori",
+							Description: "Pilih kategori",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Tukang Kabur",
+									Value: "minecraft:custom:leave_game",
+								},
+								{
+									Name:  "Si Paling Panik",
+									Value: "minecraft:custom:crouch_one_cm",
+								},
+								{
+									Name:  "Phobia Ketinggian",
+									Value: "minecraft:custom:climb_one_cm",
+								},
+								{
+									Name:  "Hobi Cuci Muka",
+									Value: "minecraft:custom:walk_under_water_one_cm",
+								},
+								{
+									Name:  "Si Paling Sibuk",
+									Value: "minecraft:custom:walk_one_cm",
+								},
+								{
+									Name:  "Pelari Cepat",
+									Value: "minecraft:custom:sprint_one_cm",
+								},
+								{
+									Name:  "Pengelana Air",
+									Value: "minecraft:custom:boat_one_cm",
+								},
+								{
+									Name:  "Penunggang Babi",
+									Value: "minecraft:custom:pig_one_cm",
+								},
+								{
+									Name:  "Joki Kuda",
+									Value: "minecraft:custom:horse_one_cm",
+								},
+								{
+									Name:  "Pilot Handal",
+									Value: "minecraft:custom:aviate_one_cm",
+								},
+								{
+									Name:  "Perenang Cepat",
+									Value: "minecraft:custom:swim_one_cm",
+								},
+								{
+									Name:  "Tukang Lompat Es",
+									Value: "minecraft:custom:walk_on_water_one_cm",
+								},
+								{
+									Name:  "Pengembara Nether",
+									Value: "minecraft:custom:strider_one_cm",
+								},
+								{
+									Name:  "Tukang Nyasar",
+									Value: "minecraft:custom:play_time",
+								},
+								{
+									Name:  "Turis Dimensi",
+									Value: "minecraft:custom:time_since_last_rest",
+								},
+
+							},
+						},
+					},
+				},
+				{
+					Name:        "food",
+					Description: "Statistik Makanan & Ramuan",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "kategori",
+							Description: "Pilih kategori",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Makan Sembarangan",
+									Value: "minecraft:used:rotten_flesh",
+								},
+								{
+									Name:  "Tukang Makan",
+									Value: "minecraft:custom:eat_record_count",
+								},
+								{
+									Name:  "Pemakan Apel Emas",
+									Value: "minecraft:used:golden_apple",
+								},
+								{
+									Name:  "Pemakan Apel Enchant",
+									Value: "minecraft:used:enchanted_golden_apple",
+								},
+								{
+									Name:  "Tukang Roti",
+									Value: "minecraft:used:bread",
+								},
+								{
+									Name:  "Pemabuk Potion",
+									Value: "minecraft:used:potion",
+								},
+								{
+									Name:  "Pecandu Madu",
+									Value: "minecraft:used:honey_bottle",
+								},
+
+							},
+						},
+					},
+				},
+				{
+					Name:        "fails",
+					Description: "Statistik Kesialan & Kematian",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "kategori",
+							Description: "Pilih kategori",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Korban Ledakan",
+									Value: "minecraft:killed_by:creeper",
+								},
+								{
+									Name:  "Jatuh Dari Langit",
+									Value: "minecraft:custom:fall_one_cm",
+								},
+								{
+									Name:  "Mandi Lava",
+									Value: "minecraft:killed_by:lava",
+								},
+								{
+									Name:  "Tersambar Petir",
+									Value: "minecraft:killed_by:lightning_bolt",
+								},
+								{
+									Name:  "Dilempar Kinetik",
+									Value: "minecraft:killed_by:fly_into_wall",
+								},
+								{
+									Name:  "Korban Llama",
+									Value: "minecraft:killed_by:llama_spit",
+								},
+								{
+									Name:  "Si Paling Tumbal",
+									Value: "minecraft:custom:deaths",
+								},
+								{
+									Name:  "Korban Gravitasi",
+									Value: "minecraft:killed_by:fall",
+								},
+								{
+									Name:  "Lemah Jantung",
+									Value: "minecraft:killed_by:wither_skeleton",
+								},
+								{
+									Name:  "Korban Kaktus",
+									Value: "minecraft:killed_by:cactus",
+								},
+								{
+									Name:  "Mati Konyol",
+									Value: "minecraft:killed_by:cramming",
+								},
+								{
+									Name:  "Mati Tertimpa Anvil",
+									Value: "minecraft:killed_by:falling_block",
+								},
+								{
+									Name:  "Si Buta",
+									Value: "minecraft:custom:time_since_death",
+								},
+
+							},
+						},
+					},
+				},
+				{
+					Name:        "misc",
+					Description: "Statistik Ekonomi & Hobi",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "kategori",
+							Description: "Pilih kategori",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Si Paling Capek",
+									Value: "minecraft:custom:jump",
+								},
+								{
+									Name:  "Kaum Rebahan",
+									Value: "minecraft:custom:sleep_in_bed",
+								},
+								{
+									Name:  "Cinta Damai",
+									Value: "minecraft:custom:animals_bred",
+								},
+								{
+									Name:  "Tukang Mancing",
+									Value: "minecraft:custom:fish_caught",
+								},
+								{
+									Name:  "Pencari Harta",
+									Value: "minecraft:custom:inspect_hopper",
+								},
+								{
+									Name:  "Juragan Kampung",
+									Value: "minecraft:custom:traded_with_villager",
+								},
+								{
+									Name:  "Pembakar Makanan",
+									Value: "minecraft:used:furnace",
+								},
+								{
+									Name:  "Pencari XP",
+									Value: "minecraft:custom:total_world_time",
+								},
+								{
+									Name:  "Si Paling Penempatan",
+									Value: "minecraft:used:cobblestone",
+								},
+								{
+									Name:  "Desainer Interior",
+									Value: "minecraft:used:oak_planks",
+								},
+								{
+									Name:  "Tukang Kaca",
+									Value: "minecraft:used:glass",
+								},
+								{
+									Name:  "Pembakar Obor",
+									Value: "minecraft:used:torch",
+								},
+								{
+									Name:  "Ahli Beton",
+									Value: "minecraft:used:cyan_concrete",
+								},
+								{
+									Name:  "Pembuat Pintu",
+									Value: "minecraft:used:iron_door",
+								},
+								{
+									Name:  "Tukang Ledak",
+									Value: "minecraft:used:tnt",
+								},
+								{
+									Name:  "Pemasang Kasur",
+									Value: "minecraft:used:red_bed",
+								},
+								{
+									Name:  "Kolektor Musik",
+									Value: "minecraft:used:music_disc_13",
+								},
+								{
+									Name:  "Petasan Mania",
+									Value: "minecraft:used:firework_rocket",
+								},
+								{
+									Name:  "Ahli Lonceng",
+									Value: "minecraft:custom:bell_ring",
+								},
+								{
+									Name:  "Seniman Banner",
+									Value: "minecraft:used:loom",
+								},
+
+							},
+						},
+					},
+				},
+				{
+					Name:        "extra",
+					Description: "Statistik Lain-Lain",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "kategori",
+							Description: "Pilih kategori",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Pembuat Peta",
+									Value: "minecraft:used:cartography_table",
+								},
+								{
+									Name:  "Pandai Besi",
+									Value: "minecraft:used:anvil",
+								},
+								{
+									Name:  "Tukang Enchanter",
+									Value: "minecraft:used:enchanting_table",
+								},
+								{
+									Name:  "Penebar Bunga",
+									Value: "minecraft:used:poppy",
+								},
+								{
+									Name:  "Pewarna Domba",
+									Value: "minecraft:used:red_dye",
+								},
+								{
+									Name:  "Pengepul Shulker",
+									Value: "minecraft:used:shulker_box",
+								},
+								{
+									Name:  "Tukang Nge-Camp",
+									Value: "minecraft:used:campfire",
+								},
+								{
+									Name:  "Raja Sampah",
+									Value: "minecraft:dropped:cobblestone",
+								},
+								{
+									Name:  "Tukang Bersih-Bersih",
+									Value: "minecraft:picked_up:cobblestone",
+								},
+								{
+									Name:  "Penggila Telur",
+									Value: "minecraft:used:egg",
+								},
+								{
+									Name:  "Pengendali Salju",
+									Value: "minecraft:used:snowball",
+								},
+								{
+									Name:  "Penjaga Ender Chest",
+									Value: "minecraft:used:ender_chest",
+								},
+
+							},
+						},
 					},
 				},
 			},
@@ -114,18 +621,6 @@ var (
 		{
 			Name:        "wllist",
 			Description: "Melihat daftar pemain yang ada di whitelist",
-		},
-		{
-			Name:        "listleaderboard",
-			Description: "Lihat daftar gelar (leaderboard) yang bisa Anda perebutkan",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "kategori",
-					Description: "Filter berdasarkan kategori (Petarung / Penjelajah / Pekerja Keras)",
-					Required:    false,
-				},
-			},
 		},
 		{
 			Name:        "tourney",
@@ -311,31 +806,33 @@ var (
 					Content: "⏳ Sedang menyinkronkan gelar pemain...",
 				},
 			})
-			msg, err := utils.SyncTitles()
-			if err != nil {
-				msg = "Error: " + err.Error()
-			}
+			msg := "⚠️ **Sync Gelar dinonaktifkan** karena gelar sekarang dinamis."
 			_, _ = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 				Content: &msg,
 			})
 		},
 		"leaderboard": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			options := i.ApplicationCommandData().Options
+			if len(options) == 0 {
+				return
+			}
+			
+			subcommand := options[0]
 			category := ""
-			for _, opt := range i.ApplicationCommandData().Options {
-				if opt.Name == "category" {
+			for _, opt := range subcommand.Options {
+				if opt.Name == "kategori" {
 					category = opt.StringValue()
 				}
 			}
-			msg, err := utils.GenerateLeaderboard(category)
-			if err != nil {
-				msg = "Error: " + err.Error()
-			}
+			
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: msg,
+					Content: "📊 Sedang memuat leaderboard...",
 				},
 			})
+			
+			utils.MessageHandler("leaderboard", s, i, category)
 		},
 		"start": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{

@@ -15,10 +15,10 @@ func RunSetup() {
 	}
 
 	fmt.Println("Running RCON PAPI Commands...")
-	runRcon("papi ecloud download Statistic")
-	runRcon("papi ecloud download Objective")
+	RunRcon("papi ecloud download Statistic")
+	RunRcon("papi ecloud download Objective")
 	time.Sleep(2 * time.Second)
-	runRcon("papi reload")
+	RunRcon("papi reload")
 	fmt.Println("PAPI commands completed!")
 
 	fmt.Println("Connecting to SSH to update scoreboards.yml...")
@@ -71,6 +71,6 @@ func RunSetup() {
 	}
 	
 	fmt.Println("SSH update complete! Reloading SimpleScore via RCON...")
-	runRcon("simplescore reload")
+	RunRcon("simplescore reload")
 	fmt.Println("All done!")
 }

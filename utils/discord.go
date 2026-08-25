@@ -428,100 +428,102 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 
 		s.ChannelMessageSend(m.ChannelID, sb.String())
 
-	case "listleaderboard":
-		var sb strings.Builder
-		sb.WriteString("🏆 **Daftar Gelar (Leaderboard) Tersedia** 🏆\n\n")
-
-		grouped := make(map[string][]string)
-		for catKey, info := range Titles {
-			if catKey == "newbie" {
-				continue
-			}
-			if p != "" && !strings.EqualFold(info.Category, p) {
-				continue
-			}
-			grouped[info.Category] = append(grouped[info.Category], fmt.Sprintf("**%s**\n└ Cara dapat: *%s*", info.PlainName, info.Desc))
-		}
-
-		if len(grouped) == 0 {
-			s.InteractionRespond(m.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{Content: "Kategori tidak ditemukan atau belum ada gelar di kategori ini."},
-			})
-			return
-		}
-
-		for catName, items := range grouped {
-			sb.WriteString(fmt.Sprintf("📂 **Kategori: %s**\n", strings.ToUpper(catName)))
-			for _, item := range items {
-				sb.WriteString(item + "\n")
-			}
-			sb.WriteString("\n")
-		}
-
-		s.InteractionRespond(m.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{Content: sb.String()},
-		})
-
-	case "gelar":
+		case "leaderboard":
 		if p == "" {
-			s.InteractionRespond(m.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{Content: "Username tidak valid."},
-			})
+			s.ChannelMessageSend(m.ChannelID, "❌ **Error:** Kategori tidak ditemukan.")
 			return
 		}
-
-		ownedTitles, err := GetTitlesForPlayer(p)
-		if err != nil {
-			s.InteractionRespond(m.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{Content: "Gagal mengambil data gelar."},
-			})
+		
+		allCats := GetAllCategories()
+		var tpetCat LBCategory
+		found := false
+		for _, c := range allCats {
+			if c.StatID == p {
+				tpetCat = c
+				found = true
+				break
+			}
+		}
+		
+		if !found {
+			s.ChannelMessageSend(m.ChannelID, "❌ **Kategori tidak valid.**")
 			return
 		}
+		
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("📊 **Sedang memuat statistik: %s...**", tpetCat.Name))
+		
+		go func() {
+			results := GetLeaderboard(tpetCat.StatID)
+			if len(results) == 0 {
+				s.ChannelMessageSend(m.ChannelID, "🤷‍♂️ **Belum ada data untuk kategori ini.**")
+				return
+			}
+			
+			var sb strings.Builder
+			sb.WriteString(fmt.Sprintf("🏆 **Leaderboard: %s**\n*%s*\n\n", tpetCat.Name, tpetCat.Desc))
+			
+			for i, r := range results {
+				if i >= 10 { // Top 10
+					break
+				}
+				medal := "🏅"
+				if i == 0 { medal = "🥇" } else if i == 1 { medal = "🥈" } else if i == 2 { medal = "🥉" }
+				sb.WriteString(fmt.Sprintf("%s **#%d %s** - %d\n", medal, i+1, r.Name, r.Value))
+			}
+			
+			s.ChannelMessageSend(m.ChannelID, sb.String())
+		}()
 
-		if len(ownedTitles) == 0 {
-			runRcon(fmt.Sprintf("team add title_newbie"))
-			runRcon(fmt.Sprintf("team modify title_newbie suffix {\"text\":\" [Warga Biasa]\",\"color\":\"gray\"}"))
-			runRcon(fmt.Sprintf("team join title_newbie %s", p))
-			s.InteractionRespond(m.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: fmt.Sprintf("Maaf, pemain **%s** belum memenangkan gelar bergengsi apapun.\nGelar Anda saat ini diatur menjadi: **[Warga Biasa]**", p),
-				},
-			})
+			case "gelar":
+		if p == "" {
+			s.ChannelMessageSend(m.ChannelID, "❌ **Format Salah!** Gunakan: `/gelar [username]`")
 			return
 		}
-
-		var options []discordgo.SelectMenuOption
-		for cat, tInfo := range ownedTitles {
-			val := fmt.Sprintf("%s:%s", p, cat)
+		
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("🔍 **Mencari gelar untuk %s...**", p))
+		
+		go func() {
+			titles := GetPlayerTitles(p)
+			if len(titles) == 0 {
+				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("😭 **%s tidak memiliki gelar apapun.**\n(Jadilah Rank 1 di kategori Leaderboard manapun untuk mendapatkan gelar!)", p))
+				return
+			}
+			
+			var options []discordgo.SelectMenuOption
+			for _, t := range titles {
+				starStr := strings.Repeat("⭐", t.Stars)
+				options = append(options, discordgo.SelectMenuOption{
+					Label:       fmt.Sprintf("%s %s", t.Title, starStr),
+					Description: t.Name,
+					Value:       fmt.Sprintf("%s:%s", p, t.StatID),
+				})
+			}
+			
+			// Add newbie title
 			options = append(options, discordgo.SelectMenuOption{
-				Label:       tInfo.PlainName,
-				Description: fmt.Sprintf("Gunakan gelar %s", tInfo.PlainName),
-				Value:       val,
+				Label:       "[Warga Biasa]",
+				Description: "Gelar Default",
+				Value:       fmt.Sprintf("%s:newbie", p),
 			})
-		}
 
-		s.InteractionRespond(m.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: fmt.Sprintf("🎓 **Gelar milik %s**\nSilakan pilih gelar mana yang ingin Anda pakai di dalam game:", p),
+			_, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+				Content: fmt.Sprintf("🎖️ **Gelar Eksklusif Milik %s** 🎖️\nSilakan pilih gelar yang ingin Anda pakai di dalam game:", p),
 				Components: []discordgo.MessageComponent{
 					discordgo.ActionsRow{
 						Components: []discordgo.MessageComponent{
 							discordgo.SelectMenu{
-								CustomID:    "select_gelar",
+								CustomID:    "select_title",
 								Placeholder: "Pilih gelar Anda...",
 								Options:     options,
 							},
 						},
 					},
 				},
-			},
-		})
+			})
+			if err != nil {
+				log.Println("Error sending components:", err)
+			}
+		}()
 
 	case "wllist":
 		mcPath := os.Getenv("MINECRAFT_PATH")
@@ -583,10 +585,7 @@ func HandleGelarSelection(s *discordgo.Session, i *discordgo.InteractionCreate) 
 	teamName := "title_" + category
 
 	// Create the team if it doesn't exist just in case
-	runRcon(fmt.Sprintf("team add %s", teamName))
-	if tInfo, ok := Titles[category]; ok {
-		runRcon(fmt.Sprintf("team modify %s suffix %s", teamName, tInfo.JSONSuffix))
-	}
+	RunRcon(fmt.Sprintf("team add %s", teamName))
 
 	out, err := sendRconCommand(fmt.Sprintf("team join %s %s", teamName, username))
 
@@ -595,9 +594,6 @@ func HandleGelarSelection(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		msg = fmt.Sprintf("Gagal memasang gelar: %v", err)
 	} else {
 		plainName := ""
-		if tInfo, ok := Titles[category]; ok {
-			plainName = tInfo.PlainName
-		}
 		msg = fmt.Sprintf("Gelar untuk **%s** berhasil diubah menjadi **%s**!\n*(%s)*", username, plainName, strings.TrimSpace(string(out)))
 	}
 
