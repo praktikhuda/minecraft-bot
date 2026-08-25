@@ -217,9 +217,9 @@ func parseStatValue(data map[string]interface{}, statID string) int {
 }
 
 func GetLeaderboard(statID string) []PlayerStat {
-	statsPath := filepath.Join(os.Getenv("MINECRAFT_PATH"), "world", "stats")
+	statsPath := filepath.Join(os.Getenv("MINECRAFT_PATH"), "world", "players", "stats")
 	if os.Getenv("MINECRAFT_PATH") == "" {
-		statsPath = "/home/mcserv/server-minecraft/world/stats"
+		statsPath = "/home/mcserv/server-minecraft/world/players/stats"
 	}
 	
 	files, err := ioutil.ReadDir(statsPath)
@@ -265,9 +265,9 @@ func GetPlayerTitles(username string) []LBCategory {
 	allCats := GetAllCategories()
 	var unlocked []LBCategory
 	
-	statsPath := filepath.Join(os.Getenv("MINECRAFT_PATH"), "world", "stats")
+	statsPath := filepath.Join(os.Getenv("MINECRAFT_PATH"), "world", "players", "stats")
 	if os.Getenv("MINECRAFT_PATH") == "" {
-		statsPath = "/home/mcserv/server-minecraft/world/stats"
+		statsPath = "/home/mcserv/server-minecraft/world/players/stats"
 	}
 	
 	files, err := ioutil.ReadDir(statsPath)
