@@ -48,11 +48,11 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 
 	// Regex for server info lines
 	// [12:34:56] [Server thread/INFO]: <MrPheee> hello
-	chatRegex := regexp.MustCompile(`\[Server thread/INFO\]: <([^>]+)> (.*)`)
-	joinRegex := regexp.MustCompile(`\[Server thread/INFO\]: ([a-zA-Z0-9_]+) joined the game`)
-	leaveRegex := regexp.MustCompile(`\[Server thread/INFO\]: ([a-zA-Z0-9_]+) left the game`)
-	advancementRegex := regexp.MustCompile(`\[Server thread/INFO\]: ([a-zA-Z0-9_]+ has made the advancement .*)`)
-	notWhitelistRegex := regexp.MustCompile(`\[Server thread/INFO\]: Disconnecting ([a-zA-Z0-9_]+) \(.*You are not white-listed`)
+	chatRegex := regexp.MustCompile(`INFO\]: (?:\[Not Secure\] )?<([^>]+)> (.*)`)
+	joinRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+) joined the game`)
+	leaveRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+) left the game`)
+	advancementRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+ has made the advancement .*)`)
+	notWhitelistRegex := regexp.MustCompile(`INFO\]: Disconnecting ([a-zA-Z0-9_]+) \(.*You are not white-listed`)
 
 	// Death messages usually don't have < > and aren't standard join/leave/advancements.
 	// But they are triggered when a player dies. We can match any line starting with a known player name
@@ -95,10 +95,10 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 				s.ChannelEdit(channelID, &discordgo.ChannelEdit{
 					Name: "minecraft-on",
 				})
-			} else if strings.Contains(line, "[Server thread/INFO]:") {
+			} else if strings.Contains(line, "INFO]:") {
 				// Check for death messages
 				// We need to extract the part after INFO]: 
-				parts := strings.SplitN(line, "[Server thread/INFO]: ", 2)
+				parts := strings.SplitN(line, "INFO]: ", 2)
 				if len(parts) == 2 {
 					msg := strings.TrimSpace(parts[1])
 					

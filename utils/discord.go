@@ -152,7 +152,7 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 
 		s.ChannelMessageSend(m.ChannelID, response)
 	case "backup":
-		s.ChannelMessageSend(m.ChannelID, "⚙️ Memulai proses kompresi backup dunia (.tar.gz). Mohon tunggu, proses ini bisa memakan waktu...")
+		s.ChannelMessageSend(m.ChannelID, "⚙️ Memulai proses kompresi backup dunia (.tar.gz). Mohon tunggu, proses ini bisa memakan waktu tergantung ukuran dunia...")
 		go func() {
 			timestamp := time.Now().Format("2006-01-02_15-04-05")
 			backupFile := fmt.Sprintf("/tmp/backup_%s.tar.gz", timestamp)
@@ -169,38 +169,33 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 				return
 			}
 			
-			// Change permission so bot can read it
+			// Ubah permission agar mcbot bisa membaca filenya untuk diupload
 			exec.Command("sudo", "chmod", "644", backupFile).Run()
 			
-			file, err := os.Open(backupFile)
-			if err != nil {
-				s.ChannelMessageSend(m.ChannelID, "❌ **Gagal membaca file backup dari penyimpanan.**")
-				return
-			}
-			defer file.Close()
+			s.ChannelMessageSend(m.ChannelID, "⏳ Kompresi selesai. Mulai mengunggah file backup ke Cloud (Uguu.se)...")
 			
-			stat, err := file.Stat()
-			if err == nil && stat.Size() > 24*1024*1024 {
-				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("❌ **Ukuran backup (%.2f MB) melebihi batas maksimal Discord (24 MB)!**\nFile tersimpan di VPS: `%s`", float64(stat.Size())/1024/1024, backupFile))
+			uploadCmd := exec.Command("curl", "-s", "-F", "files[]=@"+backupFile, "https://uguu.se/upload.php")
+			urlBytes, err := uploadCmd.Output()
+			if err != nil {
+				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("❌ **Backup gagal (Upload error):** %v", err))
 				return
 			}
 			
-			s.ChannelMessageSend(m.ChannelID, "⏳ Kompresi selesai. Mengunggah file langsung ke Discord...")
-			
-			_, err = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
-				Content: "✅ **Backup Berhasil!**\nIni adalah file ZIP dunia Minecraft Anda:",
-				Files: []*discordgo.File{
-					{
-						Name:        fmt.Sprintf("mc_world_backup_%s.tar.gz", timestamp),
-						ContentType: "application/gzip",
-						Reader:      file,
-					},
-				},
-			})
-			
-			if err != nil {
-				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("❌ **Gagal mengirim file ke Discord:** %v", err))
+			// Parse JSON response dari Uguu.se
+			type UguuResponse struct {
+				Success bool `json:"success"`
+				Files   []struct {
+					URL string `json:"url"`
+				} `json:"files"`
 			}
+			
+			var result UguuResponse
+			if err := json.Unmarshal(urlBytes, &result); err != nil || !result.Success || len(result.Files) == 0 {
+				s.ChannelMessageSend(m.ChannelID, "❌ **Backup gagal (Server Cloud menolak file).**")
+				return
+			}
+			
+			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("✅ **Backup Berhasil!**\n\nKlik link di bawah ini untuk mengunduh dunia Anda:\n%s\n\n*(Link akan kedaluwarsa secara otomatis dalam 48 jam)*", result.Files[0].URL))
 			
 			exec.Command("sudo", "rm", "-f", backupFile).Run()
 		}()
