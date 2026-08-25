@@ -479,16 +479,24 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 
 			case "gelar":
 		if p == "" {
-			s.ChannelMessageSend(m.ChannelID, "❌ **Format Salah!** Gunakan: `/gelar [username]`")
+			s.InteractionRespond(m.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "❌ **Format Salah!** Gunakan: `/gelar [username]`",
+				},
+			})
 			return
 		}
 		
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("🔍 **Mencari gelar untuk %s...**", p))
+		s.InteractionRespond(m.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		})
 		
 		go func() {
 			titles := GetPlayerTitles(p)
 			if len(titles) == 0 {
-				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("😭 **%s tidak memiliki gelar apapun.**\n(Jadilah Rank 1 di kategori Leaderboard manapun untuk mendapatkan gelar!)", p))
+				msgText := fmt.Sprintf("😭 **%s tidak memiliki gelar apapun.**\n(Jadilah Rank 1 di kategori Leaderboard manapun untuk mendapatkan gelar!)", p)
+				s.InteractionResponseEdit(m.Interaction, &discordgo.WebhookEdit{Content: &msgText})
 				return
 			}
 			
@@ -509,19 +517,21 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 				Value:       fmt.Sprintf("%s:newbie", p),
 			})
 
-			_, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
-				Content: fmt.Sprintf("🎖️ **Gelar Eksklusif Milik %s** 🎖️\nSilakan pilih gelar yang ingin Anda pakai di dalam game:", p),
-				Components: []discordgo.MessageComponent{
-					discordgo.ActionsRow{
-						Components: []discordgo.MessageComponent{
-							discordgo.SelectMenu{
-								CustomID:    "select_title",
-								Placeholder: "Pilih gelar Anda...",
-								Options:     options,
-							},
+			msgText := fmt.Sprintf("🎖️ **Gelar Eksklusif Milik %s** 🎖️\nSilakan pilih gelar yang ingin Anda pakai di dalam game:", p)
+			components := []discordgo.MessageComponent{
+				discordgo.ActionsRow{
+					Components: []discordgo.MessageComponent{
+						discordgo.SelectMenu{
+							CustomID:    "select_title",
+							Placeholder: "Pilih gelar Anda...",
+							Options:     options,
 						},
 					},
 				},
+			}
+			_, err := s.InteractionResponseEdit(m.Interaction, &discordgo.WebhookEdit{
+				Content: &msgText,
+				Components: &components,
 			})
 			if err != nil {
 				log.Println("Error sending components:", err)
@@ -571,6 +581,10 @@ func startServer() {
 
 
 func HandleGelarSelection(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredMessageUpdate,
+	})
+
 	data := i.MessageComponentData()
 	if len(data.Values) == 0 {
 		return
@@ -587,24 +601,22 @@ func HandleGelarSelection(s *discordgo.Session, i *discordgo.InteractionCreate) 
 
 	teamName := "title_" + category
 
-	// Create the team if it doesn't exist just in case
-	RunRcon(fmt.Sprintf("team add %s", teamName))
+	go func() {
+		RunRcon(fmt.Sprintf("team add %s", teamName))
+		out, err := sendRconCommand(fmt.Sprintf("team join %s %s", teamName, username))
 
-	out, err := sendRconCommand(fmt.Sprintf("team join %s %s", teamName, username))
+		msgText := "Gelar berhasil dipasang!"
+		if err != nil {
+			msgText = fmt.Sprintf("Gagal memasang gelar: %v", err)
+		} else {
+			plainName := ""
+			msgText = fmt.Sprintf("Gelar untuk **%s** berhasil diubah menjadi **%s**!\n*(%s)*", username, plainName, strings.TrimSpace(string(out)))
+		}
 
-	msg := "Gelar berhasil dipasang!"
-	if err != nil {
-		msg = fmt.Sprintf("Gagal memasang gelar: %v", err)
-	} else {
-		plainName := ""
-		msg = fmt.Sprintf("Gelar untuk **%s** berhasil diubah menjadi **%s**!\n*(%s)*", username, plainName, strings.TrimSpace(string(out)))
-	}
-
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseUpdateMessage,
-		Data: &discordgo.InteractionResponseData{
-			Content:    msg,
-			Components: []discordgo.MessageComponent{},
-		},
-	})
+		emptyComponents := []discordgo.MessageComponent{}
+		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content:    &msgText,
+			Components: &emptyComponents,
+		})
+	}()
 }
