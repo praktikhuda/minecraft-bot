@@ -152,12 +152,11 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 
 		s.ChannelMessageSend(m.ChannelID, response)
 	case "backup":
-		s.ChannelMessageSend(m.ChannelID, "⚙️ Memulai proses kompresi backup dunia (.tar.gz). Mohon tunggu, proses ini bisa memakan waktu tergantung ukuran dunia...")
+		s.ChannelMessageSend(m.ChannelID, "⚙️ Memulai proses kompresi backup dunia (.tar.gz). Mohon tunggu, proses ini bisa memakan waktu...")
 		go func() {
 			timestamp := time.Now().Format("2006-01-02_15-04-05")
 			backupFile := fmt.Sprintf("/tmp/backup_%s.tar.gz", timestamp)
 			
-			// Note: We use /home/minecraft/server-minecraft/world because /root/world was likely wrong or empty
 			worldPath := os.Getenv("MINECRAFT_PATH")
 			if worldPath == "" {
 				worldPath = "/home/minecraft/server-minecraft"
@@ -170,17 +169,38 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 				return
 			}
 			
-			s.ChannelMessageSend(m.ChannelID, "⏳ Kompresi selesai. Mulai mengunggah file backup ke Cloud (Transfer.sh)...")
+			// Change permission so bot can read it
+			exec.Command("sudo", "chmod", "644", backupFile).Run()
 			
-			uploadCmd := exec.Command("curl", "-s", "--upload-file", backupFile, "https://transfer.sh/mc_world_backup_"+timestamp+".tar.gz")
-			urlBytes, err := uploadCmd.Output()
+			file, err := os.Open(backupFile)
 			if err != nil {
-				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("❌ **Backup gagal (Upload error):** %v", err))
+				s.ChannelMessageSend(m.ChannelID, "❌ **Gagal membaca file backup dari penyimpanan.**")
+				return
+			}
+			defer file.Close()
+			
+			stat, err := file.Stat()
+			if err == nil && stat.Size() > 24*1024*1024 {
+				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("❌ **Ukuran backup (%.2f MB) melebihi batas maksimal Discord (24 MB)!**\nFile tersimpan di VPS: `%s`", float64(stat.Size())/1024/1024, backupFile))
 				return
 			}
 			
-			downloadUrl := strings.TrimSpace(string(urlBytes))
-			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("✅ **Backup Berhasil!**\n\nKlik link di bawah ini untuk mengunduh dunia Anda:\n%s\n\n*(Link akan kedaluwarsa secara otomatis dalam 14 hari)*", downloadUrl))
+			s.ChannelMessageSend(m.ChannelID, "⏳ Kompresi selesai. Mengunggah file langsung ke Discord...")
+			
+			_, err = s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+				Content: "✅ **Backup Berhasil!**\nIni adalah file ZIP dunia Minecraft Anda:",
+				Files: []*discordgo.File{
+					{
+						Name:        fmt.Sprintf("mc_world_backup_%s.tar.gz", timestamp),
+						ContentType: "application/gzip",
+						Reader:      file,
+					},
+				},
+			})
+			
+			if err != nil {
+				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("❌ **Gagal mengirim file ke Discord:** %v", err))
+			}
 			
 			exec.Command("sudo", "rm", "-f", backupFile).Run()
 		}()
