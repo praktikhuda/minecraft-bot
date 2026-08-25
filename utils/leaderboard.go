@@ -49,18 +49,18 @@ func init() {
 	LBHunt = append(LBHunt, LBCategory{"Pemburu Phantom", "minecraft:killed:phantom", "Paling banyak membunuh Phantom karena jarang tidur.", "Satpam Malam", 3})
 	LBHunt = append(LBHunt, LBCategory{"Tukang Tipu Piglin", "minecraft:killed:piglin", "Paling banyak membunuh Piglin di Nether.", "Musuh Nether", 2})
 	LBHunt = append(LBHunt, LBCategory{"Pemburu Enderman", "minecraft:killed:enderman", "Paling banyak membunuh Enderman untuk Ender Pearl.", "Mata Merah", 2})
-	LBMining = append(LBMining, LBCategory{"Juragan Diamond", "minecraft:mined:diamond_ore", "Menambang Diamond Ore terbanyak.", "Juragan Diamond", 4})
+	LBMining = append(LBMining, LBCategory{"Juragan Diamond", "minecraft:mined:diamond_ore,minecraft:mined:deepslate_diamond_ore", "Menambang Diamond Ore terbanyak.", "Juragan Diamond", 4})
 	LBMining = append(LBMining, LBCategory{"Pencari Netherite", "minecraft:mined:ancient_debris", "Menambang Ancient Debris terbanyak.", "Kuli Nether", 5})
-	LBMining = append(LBMining, LBCategory{"Kuli Batu", "minecraft:mined:stone", "Menambang batu (Cobblestone/Stone) terbanyak.", "Kuli Bangunan", 2})
+	LBMining = append(LBMining, LBCategory{"Kuli Batu", "minecraft:mined:stone,minecraft:mined:cobblestone,minecraft:mined:deepslate,minecraft:mined:cobbled_deepslate", "Menambang batu (Cobblestone/Stone) terbanyak.", "Kuli Bangunan", 2})
 	LBMining = append(LBMining, LBCategory{"Tukang Gali", "minecraft:mined:dirt", "Menggali tanah (Dirt) terbanyak.", "Cacing Tanah", 1})
 	LBMining = append(LBMining, LBCategory{"Raja Hutan", "minecraft:mined:oak_log", "Menebang kayu paling banyak.", "Penebang Pohon", 2})
-	LBMining = append(LBMining, LBCategory{"Penambang Emas", "minecraft:mined:gold_ore", "Paling banyak menambang emas.", "Sultan Emas", 3})
+	LBMining = append(LBMining, LBCategory{"Penambang Emas", "minecraft:mined:gold_ore,minecraft:mined:deepslate_gold_ore,minecraft:mined:nether_gold_ore", "Paling banyak menambang emas.", "Sultan Emas", 3})
 	LBMining = append(LBMining, LBCategory{"Petani Gandum", "minecraft:mined:wheat", "Paling banyak memanen gandum.", "Petani Desa", 2})
 	LBMining = append(LBMining, LBCategory{"Petani Wortel", "minecraft:mined:carrots", "Paling banyak memanen wortel.", "Si Kelinci", 2})
 	LBMining = append(LBMining, LBCategory{"Pemecah Pickaxe", "minecraft:broken:diamond_pickaxe", "Paling sering merusakkan beliung diamond/netherite.", "Penghancur Alat", 4})
-	LBMining = append(LBMining, LBCategory{"Penggila Redstone", "minecraft:mined:redstone_ore", "Menambang Redstone terbanyak.", "Ahli Mesin", 2})
+	LBMining = append(LBMining, LBCategory{"Penggila Redstone", "minecraft:mined:redstone_ore,minecraft:mined:deepslate_redstone_ore", "Menambang Redstone terbanyak.", "Ahli Mesin", 2})
 	LBMining = append(LBMining, LBCategory{"Tukang Gali Pasir", "minecraft:mined:sand", "Menambang pasir paling banyak untuk membuat kaca/TNT.", "Penyapu Gurun", 1})
-	LBMining = append(LBMining, LBCategory{"Penambang Lapis", "minecraft:mined:lapis_ore", "Menambang Lapis Lazuli terbanyak.", "Si Penyihir", 2})
+	LBMining = append(LBMining, LBCategory{"Penambang Lapis", "minecraft:mined:lapis_ore,minecraft:mined:deepslate_lapis_ore", "Menambang Lapis Lazuli terbanyak.", "Si Penyihir", 2})
 	LBMining = append(LBMining, LBCategory{"Pembersih Nether", "minecraft:mined:netherrack", "Paling banyak menggali Netherrack.", "Penjelajah Neraka", 2})
 	LBExplore = append(LBExplore, LBCategory{"Tukang Kabur", "minecraft:custom:leave_game", "Siapa yang paling sering logout / keluar-masuk server.", "Tukang Kabur", 2})
 	LBExplore = append(LBExplore, LBCategory{"Si Paling Panik", "minecraft:custom:crouch_one_cm", "Paling sering jalan jongkok (Sneaking) karena ketakutan.", "Ninja Kesasar", 2})
@@ -177,43 +177,42 @@ func getUsernameMap() map[string]string {
 	return m
 }
 
-func parseStatValue(data map[string]interface{}, statID string) int {
-	parts := strings.SplitN(statID, ":", 3)
-	if len(parts) < 2 {
-		return 0
-	}
-	
-	statsObj, ok := data["stats"].(map[string]interface{})
-	if !ok {
-		return 0
-	}
-	
-	var category, item string
-	if len(parts) == 3 {
-		category = parts[0] + ":" + parts[1]
-		item = parts[0] + ":" + parts[2]
-	} else {
-		category = parts[0] + ":" + parts[1]
-		item = ""
-	}
-	
-	catObj, ok := statsObj[category].(map[string]interface{})
-	if !ok {
-		return 0
-	}
-	
-	if item != "" {
-		val, ok := catObj[item].(float64)
-		if ok {
-			return int(val)
+func parseStatValue(data map[string]interface{}, statIDs string) int {
+	total := 0
+	for _, statID := range strings.Split(statIDs, ",") {
+		statID = strings.TrimSpace(statID)
+		parts := strings.SplitN(statID, ":", 3)
+		if len(parts) < 2 {
+			continue
 		}
-	} else {
-		// Custom stats just have 2 parts usually, e.g., minecraft:custom
-		// Wait, custom stats are minecraft:custom:play_time (3 parts).
-		// Are there 2 part stats? Usually no. But we leave this fallback.
+		
+		statsObj, ok := data["stats"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		
+		var category, item string
+		if len(parts) == 3 {
+			category = parts[0] + ":" + parts[1]
+			item = parts[0] + ":" + parts[2]
+		} else {
+			category = parts[0] + ":" + parts[1]
+			item = ""
+		}
+		
+		catObj, ok := statsObj[category].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		
+		if item != "" {
+			val, ok := catObj[item].(float64)
+			if ok {
+				total += int(val)
+			}
+		}
 	}
-	
-	return 0
+	return total
 }
 
 func GetLeaderboard(statID string) []PlayerStat {
