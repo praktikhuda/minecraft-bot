@@ -60,16 +60,6 @@ var (
 			},
 		},
 		{
-			Name:                     "rmblackmarket",
-			Description:              "Hapus semua pedagang gelap dari dunia",
-			DefaultMemberPermissions: &defaultMemberPermisions,
-		},
-		{
-			Name:                     "blackmarket",
-			Description:              "Panggil pedagang gelap ke koordinat acak",
-			DefaultMemberPermissions: &defaultMemberPermisions,
-		},
-		{
 			Name:                     "sync_titles",
 			Description:              "Update ingame titles for top players automatically",
 			DefaultMemberPermissions: &defaultMemberPermisions,
@@ -122,11 +112,6 @@ var (
 			DefaultMemberPermissions: &defaultMemberPermisions,
 		},
 		{
-			Name:                     "logs",
-			Description:              "Fetch the latest 15 lines of server logs (Admin Only)",
-			DefaultMemberPermissions: &defaultMemberPermisions,
-		},
-		{
 			Name:        "wllist",
 			Description: "Melihat daftar pemain yang ada di whitelist",
 		},
@@ -141,14 +126,6 @@ var (
 					Required:    false,
 				},
 			},
-		},
-		{
-			Name:        "cleartourney",
-			Description: "Membatalkan turnamen PVP yang sedang berlangsung secara paksa",
-		},
-		{
-			Name:        "daily",
-			Description: "Lihat Misi Harian yang tersedia hari ini",
 		},
 		{
 			Name:        "tourney",
@@ -182,7 +159,15 @@ var (
 		},
 		{
 			Name:        "whereis",
-			Description: "Melacak lokasi seluruh pemain (Admin Only)",
+			Description: "Melacak lokasi pemain (Admin Only)",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "username",
+					Description: "Nama pemain yang ingin dilacak (Kosongkan untuk cari semua)",
+					Required:    false,
+				},
+			},
 		},
 		{
 			Name:        "wl",
@@ -309,53 +294,6 @@ var (
 			p := i.ApplicationCommandData().Options[0].StringValue()
 			utils.MessageHandler("unban", s, i, p)
 		},
-		"rmblackmarket": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if !isOwner(i) {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
-					},
-				})
-				return
-			}
-
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "⏳ Sedang mengusir Pedagang Gelap...",
-				},
-			})
-			msg, _ := utils.RemoveBlackMarket()
-			s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-				Content: &msg,
-			})
-		},
-		"blackmarket": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if !isOwner(i) {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
-					},
-				})
-				return
-			}
-
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "⏳ Memanggil pedagang gelap dari langit...",
-				},
-			})
-			msg, err := utils.SpawnBlackMarket()
-			if err != nil {
-				msg = "Error: " + err.Error()
-			}
-			_, _ = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-				Content: &msg,
-			})
-		},
 		"sync_titles": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			if !isOwner(i) {
 				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -454,24 +392,6 @@ var (
 			})
 			utils.MessageHandler("info", s, i, "")
 		},
-		"tps": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "**Checking server TPS...**",
-				},
-			})
-			utils.MessageHandler("tps", s, i, "")
-		},
-		"ip": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "**Fetching Server IP...**",
-				},
-			})
-			utils.MessageHandler("ip", s, i, "")
-		},
 		"backup": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			if !isOwner(i) {
 				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -490,25 +410,6 @@ var (
 				},
 			})
 			utils.MessageHandler("backup", s, i, "")
-		},
-		"logs": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if !isOwner(i) {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "❌ **Akses Ditolak:** Perintah ini dikunci dan hanya Owner Bot yang bisa memakainya!",
-					},
-				})
-				return
-			}
-
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "**Fetching the latest server logs...**",
-				},
-			})
-			utils.MessageHandler("logs", s, i, "")
 		},
 		"say": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			options := i.ApplicationCommandData().Options
@@ -649,38 +550,6 @@ var (
 			}
 			utils.MessageHandler("listleaderboard", s, i, kategori)
 		},
-		"daily": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			embed := utils.GenerateDailyEmbed()
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Embeds: []*discordgo.MessageEmbed{embed},
-				},
-			})
-		},
-		"cleartourney": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if !isOwner(i) {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{Content: "❌ Anda tidak memiliki izin untuk perintah ini!"},
-				})
-				return
-			}
-			utils.ForceClearTourney(s, i)
-		},
-		"tourney": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if !isOwner(i) {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{Content: "❌ Anda tidak memiliki izin untuk memulai turnamen!"},
-				})
-				return
-			}
-			options := i.ApplicationCommandData().Options
-			p1 := options[0].StringValue()
-			p2 := options[1].StringValue()
-			utils.StartTourney(s, i, p1, p2)
-		},
 		"gelar": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			options := i.ApplicationCommandData().Options
 			optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
@@ -700,10 +569,17 @@ var (
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: "**🌍 Melacak lokasi seluruh pemain...**",
+					Content: "**🌍 Melacak lokasi...**",
 				},
 			})
-			utils.MessageHandler("whereis", s, i, "")
+			options := i.ApplicationCommandData().Options
+			username := ""
+			for _, opt := range options {
+				if opt.Name == "username" {
+					username = opt.StringValue()
+				}
+			}
+			utils.MessageHandler("whereis", s, i, username)
 		},
 		"wllist": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -770,15 +646,7 @@ func isOwner(i *discordgo.InteractionCreate) bool {
 func main() {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
-		
-		// Setup Daily System on the sync channel if defined
-		syncChannel := os.Getenv("SYNC_CHANNEL_ID")
-		if syncChannel != "" {
-			utils.InitDailySystem(s, syncChannel)
-		}
 	})
-
-	s.AddHandler(utils.CrossChatHandler)
 
 	s.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentsGuilds | discordgo.IntentMessageContent
 
