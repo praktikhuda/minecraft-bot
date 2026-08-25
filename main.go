@@ -1111,7 +1111,7 @@ var (
 )
 
 var componentHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-	"select_gelar": utils.HandleGelarSelection,
+	"select_title": utils.HandleGelarSelection,
 }
 
 func init() {
