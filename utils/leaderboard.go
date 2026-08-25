@@ -159,7 +159,7 @@ type UserCacheEntry struct {
 func getUsernameMap() map[string]string {
 	cachePath := filepath.Join(os.Getenv("MINECRAFT_PATH"), "usercache.json")
 	if os.Getenv("MINECRAFT_PATH") == "" {
-		cachePath = "/home/minecraft/server-minecraft/usercache.json"
+		cachePath = "/home/mcserv/server-minecraft/usercache.json"
 	}
 	
 	bytes, err := ioutil.ReadFile(cachePath)
@@ -219,7 +219,7 @@ func parseStatValue(data map[string]interface{}, statID string) int {
 func GetLeaderboard(statID string) []PlayerStat {
 	statsPath := filepath.Join(os.Getenv("MINECRAFT_PATH"), "world", "stats")
 	if os.Getenv("MINECRAFT_PATH") == "" {
-		statsPath = "/home/minecraft/server-minecraft/world/stats"
+		statsPath = "/home/mcserv/server-minecraft/world/stats"
 	}
 	
 	files, err := ioutil.ReadDir(statsPath)
@@ -267,7 +267,7 @@ func GetPlayerTitles(username string) []LBCategory {
 	
 	statsPath := filepath.Join(os.Getenv("MINECRAFT_PATH"), "world", "stats")
 	if os.Getenv("MINECRAFT_PATH") == "" {
-		statsPath = "/home/minecraft/server-minecraft/world/stats"
+		statsPath = "/home/mcserv/server-minecraft/world/stats"
 	}
 	
 	files, err := ioutil.ReadDir(statsPath)

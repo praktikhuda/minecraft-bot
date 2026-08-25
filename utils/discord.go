@@ -159,7 +159,7 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 			
 			worldPath := os.Getenv("MINECRAFT_PATH")
 			if worldPath == "" {
-				worldPath = "/home/minecraft/server-minecraft"
+				worldPath = "/home/mcserv/server-minecraft"
 			}
 			
 			cmd := exec.Command("sudo", "tar", "-czf", backupFile, "-C", worldPath, "world")
@@ -426,7 +426,8 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 			sb.WriteString(fmt.Sprintf("- **%s**: %s (%s)\n", p, dim, coords))
 		}
 
-		s.ChannelMessageSend(m.ChannelID, sb.String())
+		msg := sb.String()
+			s.InteractionResponseEdit(m.Interaction, &discordgo.WebhookEdit{Content: &msg})
 
 		case "leaderboard":
 		if p == "" {
@@ -455,7 +456,8 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 		go func() {
 			results := GetLeaderboard(tpetCat.StatID)
 			if len(results) == 0 {
-				s.ChannelMessageSend(m.ChannelID, "🤷‍♂️ **Belum ada data untuk kategori ini.**")
+				msg := "🤷‍♂️ **Belum ada data untuk kategori ini.**"
+				s.InteractionResponseEdit(m.Interaction, &discordgo.WebhookEdit{Content: &msg})
 				return
 			}
 			
@@ -471,7 +473,8 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 				sb.WriteString(fmt.Sprintf("%s **#%d %s** - %d\n", medal, i+1, r.Name, r.Value))
 			}
 			
-			s.ChannelMessageSend(m.ChannelID, sb.String())
+			msg := sb.String()
+			s.InteractionResponseEdit(m.Interaction, &discordgo.WebhookEdit{Content: &msg})
 		}()
 
 			case "gelar":
