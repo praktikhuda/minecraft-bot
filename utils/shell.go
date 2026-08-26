@@ -49,9 +49,9 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 	// Regex for server info lines
 	// [12:34:56] [Server thread/INFO]: <MrPheee> hello
 	chatRegex := regexp.MustCompile(`INFO\]: (?:\[Not Secure\] )?<([^>]+)> (.*)`)
-	joinRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+) joined the game`)
-	leaveRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+) left the game`)
-	advancementRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+ has made the advancement .*)`)
+	joinRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+)(?: \[[^\]]+\])? joined the game`)
+	leaveRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+)(?: \[[^\]]+\])? left the game`)
+	advancementRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+)(?: \[[^\]]+\])? (has made the advancement .*)`)
 	notWhitelistRegex := regexp.MustCompile(`INFO\]: Disconnecting ([a-zA-Z0-9_]+) \(.*You are not white-listed`)
 	detailedDeathRegex := regexp.MustCompile(`x=([-\d.]+), y=([-\d.]+), z=([-\d.]+).*?\] died, message: '(.*?)'`)
 
@@ -90,7 +90,7 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 			} else if match := leaveRegex.FindStringSubmatch(line); match != nil {
 				res = fmt.Sprintf("❌ **%s** left the game", match[1])
 			} else if match := advancementRegex.FindStringSubmatch(line); match != nil {
-				res = fmt.Sprintf("🏆 **%s**", match[1])
+				res = fmt.Sprintf("🏆 **%s** %s", match[1], match[2])
 			} else if match := notWhitelistRegex.FindStringSubmatch(line); match != nil {
 				res = fmt.Sprintf("⚠️ **%s** tried to join but is not whitelisted.\nAdd player using:\n```/wl %s```", match[1], match[1])
 			} else if strings.Contains(line, "For help, type") {
