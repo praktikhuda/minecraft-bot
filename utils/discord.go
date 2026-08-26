@@ -503,10 +503,11 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 			var options []discordgo.SelectMenuOption
 			for _, t := range titles {
 				starStr := strings.Repeat("⭐", t.Stars)
+				safeName := strings.ReplaceAll(strings.ToLower(t.Name), " ", "_")
 				options = append(options, discordgo.SelectMenuOption{
 					Label:       fmt.Sprintf("%s %s", t.Title, starStr),
 					Description: t.Name,
-					Value:       fmt.Sprintf("%s:%s", p, t.StatID),
+					Value:       fmt.Sprintf("%s:%s", p, safeName),
 				})
 			}
 			
@@ -591,7 +592,7 @@ func HandleGelarSelection(s *discordgo.Session, i *discordgo.InteractionCreate) 
 	}
 
 	val := data.Values[0]
-	parts := strings.Split(val, ":")
+	parts := strings.SplitN(val, ":", 2)
 	if len(parts) != 2 {
 		return
 	}
@@ -599,18 +600,54 @@ func HandleGelarSelection(s *discordgo.Session, i *discordgo.InteractionCreate) 
 	username := parts[0]
 	category := parts[1]
 
-	teamName := "title_" + category
-
 	go func() {
+		if category == "newbie" {
+			RunRcon(fmt.Sprintf("team leave %s", username))
+			msgText := fmt.Sprintf("Gelar untuk **%s** berhasil dilepas (kembali menjadi Warga Biasa).", username)
+			emptyComponents := []discordgo.MessageComponent{}
+			s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+				Content:    &msgText,
+				Components: &emptyComponents,
+			})
+			return
+		}
+
+		// Find the original title info
+		var foundCat LBCategory
+		found := false
+		
+		allCats := [][]LBCategory{LBMining, LBCombat, LBHunt, LBExplore, LBFood, LBFails, LBMisc, LBExtra}
+		for _, catList := range allCats {
+			for _, cat := range catList {
+				safeName := strings.ReplaceAll(strings.ToLower(cat.Name), " ", "_")
+				if safeName == category {
+					foundCat = cat
+					found = true
+					break
+				}
+			}
+			if found {
+				break
+			}
+		}
+
+		teamName := "t_" + category
+		if len(teamName) > 16 {
+			// Older minecraft servers only allow 16 chars for team names
+			teamName = teamName[:16]
+		}
+
 		RunRcon(fmt.Sprintf("team add %s", teamName))
+		if found {
+			RunRcon(fmt.Sprintf("team modify %s prefix \"[%s] \"", teamName, foundCat.Title))
+		}
 		out, err := sendRconCommand(fmt.Sprintf("team join %s %s", teamName, username))
 
 		msgText := "Gelar berhasil dipasang!"
 		if err != nil {
 			msgText = fmt.Sprintf("Gagal memasang gelar: %v", err)
 		} else {
-			plainName := ""
-			msgText = fmt.Sprintf("Gelar untuk **%s** berhasil diubah menjadi **%s**!\n*(%s)*", username, plainName, strings.TrimSpace(string(out)))
+			msgText = fmt.Sprintf("Gelar untuk **%s** berhasil diubah menjadi **%s**!\n*(%s)*", username, foundCat.Title, strings.TrimSpace(string(out)))
 		}
 
 		emptyComponents := []discordgo.MessageComponent{}
