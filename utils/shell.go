@@ -49,9 +49,9 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 	// Regex for server info lines
 	// [12:34:56] [Server thread/INFO]: <MrPheee> hello
 	chatRegex := regexp.MustCompile(`INFO\]: (?:\[Not Secure\] )?<([^>]+)> (.*)`)
-	joinRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+)(?: \[[^\]]+\])? joined the game`)
-	leaveRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+)(?: \[[^\]]+\])? left the game`)
-	advancementRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+)(?: \[[^\]]+\])? (has made the advancement .*)`)
+	joinRegex := regexp.MustCompile(`INFO\]: (?:\[.*?\] )?([a-zA-Z0-9_]+)(?: \[[^\]]+\])? joined the game`)
+	leaveRegex := regexp.MustCompile(`INFO\]: (?:\[.*?\] )?([a-zA-Z0-9_]+)(?: \[[^\]]+\])? left the game`)
+	advancementRegex := regexp.MustCompile(`INFO\]: (?:\[.*?\] )?([a-zA-Z0-9_]+)(?: \[[^\]]+\])? (has made the advancement .*)`)
 	notWhitelistRegex := regexp.MustCompile(`INFO\]: Disconnecting ([a-zA-Z0-9_]+) \(.*You are not white-listed`)
 	detailedDeathRegex := regexp.MustCompile(`x=([-\d.]+), y=([-\d.]+), z=([-\d.]+).*?\] died, message: '(.*?)'`)
 
@@ -105,7 +105,8 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 					if !strings.Contains(msg, "UUID of player") && !strings.Contains(msg, "logged in with entity id") && !strings.Contains(msg, "lost connection:") {
 						for _, keyword := range deathKeywords {
 							if strings.Contains(msg, keyword) {
-								res = fmt.Sprintf("💀 **%s**", msg)
+								// Gunakan fungsi parseDeathMessage dengan koordinat kosong
+								res = parseDeathMessage(msg, "", "", "")
 								break
 							}
 						}
@@ -129,9 +130,15 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 
 
 func parseDeathMessage(msg, x, y, z string) string {
-	x = strings.Split(x, ".")[0]
-	y = strings.Split(y, ".")[0]
-	z = strings.Split(z, ".")[0]
+	if x != "" {
+		x = strings.Split(x, ".")[0]
+	}
+	if y != "" {
+		y = strings.Split(y, ".")[0]
+	}
+	if z != "" {
+		z = strings.Split(z, ".")[0]
+	}
 
 	victim := ""
 	killer := ""
@@ -157,12 +164,20 @@ func parseDeathMessage(msg, x, y, z string) string {
 	}
 
 	if victim == "" {
-		parts := strings.SplitN(msg, " ", 2)
-		if len(parts) == 2 {
-			victim = parts[0]
-			alasan = parts[1]
+		// Gunakan regex untuk mengambil nama pemain (yang mungkin punya prefix) dan alasan matinya
+		fallbackRegex := regexp.MustCompile(`^(\[.*?\] [a-zA-Z0-9_]+|[a-zA-Z0-9_]+) (.*)$`)
+		if match := fallbackRegex.FindStringSubmatch(msg); match != nil {
+			victim = match[1]
+			alasan = match[2]
 		} else {
-			victim = "Unknown"
+			parts := strings.SplitN(msg, " ", 2)
+			if len(parts) == 2 {
+				victim = parts[0]
+				alasan = parts[1]
+			} else {
+				victim = "Unknown"
+				alasan = msg
+			}
 		}
 	}
 
@@ -180,7 +195,11 @@ func parseDeathMessage(msg, x, y, z string) string {
 		sb.WriteString(fmt.Sprintf("**Penyebab:** `%s`\n", alasan))
 	}
 
-	sb.WriteString(fmt.Sprintf("**Lokasi (XYZ):** `X: %s, Y: %s, Z: %s`\n", x, y, z))
+	if x != "" && y != "" && z != "" {
+		sb.WriteString(fmt.Sprintf("**Lokasi (XYZ):** `X: %s, Y: %s, Z: %s`\n", x, y, z))
+	} else {
+		sb.WriteString("**Lokasi:** `Tidak diketahui (Pemain)`\n")
+	}
 	
 	return sb.String()
 }
