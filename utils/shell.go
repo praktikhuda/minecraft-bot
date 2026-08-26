@@ -53,6 +53,7 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 	leaveRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+) left the game`)
 	advancementRegex := regexp.MustCompile(`INFO\]: ([a-zA-Z0-9_]+ has made the advancement .*)`)
 	notWhitelistRegex := regexp.MustCompile(`INFO\]: Disconnecting ([a-zA-Z0-9_]+) \(.*You are not white-listed`)
+	detailedDeathRegex := regexp.MustCompile(`x=([-\d.]+), y=([-\d.]+), z=([-\d.]+).*?\] died, message: '(.*?)'`)
 
 	// Death messages usually don't have < > and aren't standard join/leave/advancements.
 	// But they are triggered when a player dies. We can match any line starting with a known player name
@@ -82,6 +83,8 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 
 			if match := chatRegex.FindStringSubmatch(line); match != nil {
 				res = fmt.Sprintf("💬 **%s**: %s", match[1], match[2])
+			} else if match := detailedDeathRegex.FindStringSubmatch(line); match != nil {
+				res = parseDeathMessage(match[4], match[1], match[2], match[3])
 			} else if match := joinRegex.FindStringSubmatch(line); match != nil {
 				res = fmt.Sprintf("✅ **%s** joined the game", match[1])
 			} else if match := leaveRegex.FindStringSubmatch(line); match != nil {
@@ -96,13 +99,9 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 					Name: "minecraft-on",
 				})
 			} else if strings.Contains(line, "INFO]:") {
-				// Check for death messages
-				// We need to extract the part after INFO]: 
 				parts := strings.SplitN(line, "INFO]: ", 2)
 				if len(parts) == 2 {
 					msg := strings.TrimSpace(parts[1])
-					
-					// Ignore standard non-death messages to prevent spam
 					if !strings.Contains(msg, "UUID of player") && !strings.Contains(msg, "logged in with entity id") && !strings.Contains(msg, "lost connection:") {
 						for _, keyword := range deathKeywords {
 							if strings.Contains(msg, keyword) {
@@ -126,4 +125,62 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 	}
 
 	cmd.Wait()
+}
+
+
+func parseDeathMessage(msg, x, y, z string) string {
+	x = strings.Split(x, ".")[0]
+	y = strings.Split(y, ".")[0]
+	z = strings.Split(z, ".")[0]
+
+	victim := ""
+	killer := ""
+	weapon := ""
+	alasan := msg
+
+	delimiters := []string{" was slain by ", " was shot by ", " was blown up by ", " was fireballed by ", " was pummeled by ", " was killed by "}
+	
+	for _, delim := range delimiters {
+		if idx := strings.Index(msg, delim); idx != -1 {
+			victim = msg[:idx]
+			rest := msg[idx+len(delim):]
+			if usingIdx := strings.Index(rest, " using "); usingIdx != -1 {
+				killer = rest[:usingIdx]
+				weapon = rest[usingIdx+7:]
+				alasan = strings.TrimSpace(delim[4:])
+			} else {
+				killer = rest
+				alasan = strings.TrimSpace(delim[4:])
+			}
+			break
+		}
+	}
+
+	if victim == "" {
+		parts := strings.SplitN(msg, " ", 2)
+		if len(parts) == 2 {
+			victim = parts[0]
+			alasan = parts[1]
+		} else {
+			victim = "Unknown"
+		}
+	}
+
+	var sb strings.Builder
+	sb.WriteString("💀 **LAPORAN KEMATIAN** 💀\n")
+	sb.WriteString(fmt.Sprintf("**Korban:** `%s`\n", victim))
+	
+	if killer != "" {
+		sb.WriteString(fmt.Sprintf("**Pelaku:** `%s`\n", killer))
+	}
+	
+	if weapon != "" {
+		sb.WriteString(fmt.Sprintf("**Senjata:** `%s`\n", weapon))
+	} else if killer == "" {
+		sb.WriteString(fmt.Sprintf("**Penyebab:** `%s`\n", alasan))
+	}
+
+	sb.WriteString(fmt.Sprintf("**Lokasi (XYZ):** `X: %s, Y: %s, Z: %s`\n", x, y, z))
+	
+	return sb.String()
 }
