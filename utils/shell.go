@@ -51,7 +51,7 @@ func LogListen(ctx context.Context, s *discordgo.Session, channelID string) {
 	chatRegex := regexp.MustCompile(`INFO\]: (?:\[Not Secure\] )?<([^>]+)> (.*)`)
 	joinRegex := regexp.MustCompile(`INFO\]: (?:\[.*?\] )?([a-zA-Z0-9_]+)(?: \[[^\]]+\])? joined the game`)
 	leaveRegex := regexp.MustCompile(`INFO\]: (?:\[.*?\] )?([a-zA-Z0-9_]+)(?: \[[^\]]+\])? left the game`)
-	advancementRegex := regexp.MustCompile(`INFO\]: (?:\[.*?\] )?([a-zA-Z0-9_]+)(?: \[[^\]]+\])? (has made the advancement .*)`)
+	advancementRegex := regexp.MustCompile(`INFO\]: (?:\[.*?\] )?([a-zA-Z0-9_]+)(?: \[[^\]]+\])? (has made the advancement .*|has completed the challenge .*|has reached the goal .*)`)
 	notWhitelistRegex := regexp.MustCompile(`INFO\]: Disconnecting ([a-zA-Z0-9_]+) \(.*You are not white-listed`)
 	detailedDeathRegex := regexp.MustCompile(`x=([-\d.]+), y=([-\d.]+), z=([-\d.]+).*?\] died, message: '(.*?)'`)
 
