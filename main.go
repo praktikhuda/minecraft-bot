@@ -742,7 +742,7 @@ var (
 							Value: "admin",
 						},
 						{
-							Name:  "Spectator (Spectator + Deop)",
+							Name:  "Spectator (Spectator + OP)",
 							Value: "spectator",
 						},
 						{

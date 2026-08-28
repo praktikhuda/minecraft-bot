@@ -277,9 +277,9 @@ func MessageHandler(command string, s *discordgo.Session, m *discordgo.Interacti
 			cmds = append(cmds, fmt.Sprintf("gamemode creative %s", username))
 			actionName = "dijadikan ADMIN (OP & Creative)"
 		} else if role == "spectator" {
-			cmds = append(cmds, fmt.Sprintf("deop %s", username))
+			cmds = append(cmds, fmt.Sprintf("op %s", username))
 			cmds = append(cmds, fmt.Sprintf("gamemode spectator %s", username))
-			actionName = "dijadikan SPECTATOR (Mata-mata)"
+			actionName = "dijadikan SPECTATOR (Mata-mata & OP)"
 		} else if role == "player" {
 			cmds = append(cmds, fmt.Sprintf("deop %s", username))
 			cmds = append(cmds, fmt.Sprintf("gamemode survival %s", username))
